@@ -89,14 +89,14 @@ export default function TransactionsPage() {
     <PageShell>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Transactions</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Transactions</h1>
             <p className="text-sm text-muted-foreground mt-1">
               View and manage all your income and expenses
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             {allTransactions.length > 0 && (
               <Button
                 variant="ghost"
@@ -210,19 +210,19 @@ export default function TransactionsPage() {
         </Card>
 
         {/* Transactions Table */}
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Transactions</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {loading ? (
-              <div className="space-y-3">
+              <div className="space-y-3 p-6">
                 {[1, 2, 3, 4, 5].map(i => (
                   <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
                 ))}
               </div>
             ) : transactions.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-12 px-6">
                 <p className="text-lg text-muted-foreground mb-4">
                   {allTransactions.length === 0 ? 'No transactions yet' : 'No transactions match the selected filters'}
                 </p>
@@ -233,53 +233,53 @@ export default function TransactionsPage() {
                 )}
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="w-full overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-border text-sm text-muted-foreground">
-                      <th className="text-left py-3 px-2">Date</th>
-                      <th className="text-left py-3 px-2">Category</th>
-                      <th className="text-left py-3 px-2">Type</th>
-                      <th className="text-right py-3 px-2">Amount</th>
-                      <th className="text-left py-3 px-2">Note</th>
-                      <th className="text-right py-3 px-2">Actions</th>
+                    <tr className="text-sm text-muted-foreground bg-muted/30">
+                      <th className="text-left py-3 px-3 sm:px-4 font-medium whitespace-nowrap">Date</th>
+                      <th className="text-left py-3 px-3 sm:px-4 font-medium whitespace-nowrap">Category</th>
+                      <th className="text-left py-3 px-3 sm:px-4 font-medium whitespace-nowrap">Type</th>
+                      <th className="text-right py-3 px-3 sm:px-4 font-medium whitespace-nowrap">Amount</th>
+                      <th className="text-left py-3 px-3 sm:px-4 font-medium hidden md:table-cell">Note</th>
+                      <th className="text-right py-3 px-3 sm:px-4 font-medium whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {transactions.map((tx) => (
-                      <tr
-                        key={tx.id}
-                        className="border-b border-border hover:bg-muted/50 transition-colors"
-                      >
-                        <td className="py-4 px-2 text-sm">{formatDate(tx.date)}</td>
-                        <td className="py-4 px-2">
-                          <Badge variant="default">{tx.category}</Badge>
-                        </td>
-                        <td className="py-4 px-2">
-                          <Badge variant={tx.type === 'income' ? 'success' : 'danger'}>
-                            {tx.type}
-                          </Badge>
-                        </td>
-                        <td className={`py-4 px-2 text-right font-semibold ${
-                          tx.type === 'income' ? 'text-success' : 'text-danger'
-                        }`}>
-                          {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount, currency.code)}
-                        </td>
-                        <td className="py-4 px-2 text-sm text-muted-foreground max-w-xs truncate">
-                          {tx.note || '-'}
-                        </td>
-                        <td className="py-4 px-2 text-right">
-                          <Link href={`/edit/${tx.id}`}>
-                            <Button variant="ghost" className="text-xs px-3 py-1">
-                              Edit
-                            </Button>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  <tbody className="divide-y divide-border bg-white">
+                      {transactions.map((tx) => (
+                        <tr
+                          key={tx.id}
+                          className="hover:bg-muted/50 transition-colors"
+                        >
+                          <td className="py-3 px-3 sm:px-4 text-xs sm:text-sm whitespace-nowrap">{formatDate(tx.date)}</td>
+                          <td className="py-3 px-3 sm:px-4">
+                            <Badge variant="default" className="text-xs">{tx.category}</Badge>
+                          </td>
+                          <td className="py-3 px-3 sm:px-4">
+                            <Badge variant={tx.type === 'income' ? 'success' : 'danger'} className="text-xs">
+                              {tx.type}
+                            </Badge>
+                          </td>
+                          <td className={`py-3 px-3 sm:px-4 text-right font-semibold text-xs sm:text-sm whitespace-nowrap ${
+                            tx.type === 'income' ? 'text-success' : 'text-danger'
+                          }`}>
+                            {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount, currency.code)}
+                          </td>
+                          <td className="py-3 px-3 sm:px-4 text-xs sm:text-sm text-muted-foreground max-w-xs truncate hidden md:table-cell">
+                            {tx.note || '-'}
+                          </td>
+                          <td className="py-3 px-3 sm:px-4 text-right whitespace-nowrap">
+                            <Link href={`/edit/${tx.id}`}>
+                              <Button variant="ghost" className="text-xs px-2 py-1">
+                                Edit
+                              </Button>
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
             )}
           </CardContent>
         </Card>
@@ -287,11 +287,11 @@ export default function TransactionsPage() {
         {/* Summary */}
         {transactions.length > 0 && (
           <Card>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-3 gap-4 text-center">
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Income</p>
-                  <p className="text-2xl font-bold text-success">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Income</p>
+                  <p className="text-xl sm:text-2xl font-bold text-success">
                     {formatCurrency(
                       transactions
                         .filter(tx => tx.type === 'income')
@@ -301,8 +301,8 @@ export default function TransactionsPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Expenses</p>
-                  <p className="text-2xl font-bold text-danger">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Expenses</p>
+                  <p className="text-xl sm:text-2xl font-bold text-danger">
                     {formatCurrency(
                       transactions
                         .filter(tx => tx.type === 'expense')
@@ -312,8 +312,8 @@ export default function TransactionsPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Net</p>
-                  <p className={`text-2xl font-bold ${
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">Net</p>
+                  <p className={`text-xl sm:text-2xl font-bold ${
                     transactions.reduce((sum, tx) => 
                       sum + (tx.type === 'income' ? tx.amount : -tx.amount), 0
                     ) >= 0 ? 'text-success' : 'text-danger'
