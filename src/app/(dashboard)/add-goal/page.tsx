@@ -152,7 +152,7 @@ export default function AddGoalPage() {
                 </Button>
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="ghost"
                   onClick={() => router.push('/goals')}
                   disabled={submitting}
                 >
