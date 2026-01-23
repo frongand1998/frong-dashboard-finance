@@ -227,7 +227,7 @@ export default function EditTransactionPage() {
                 </Button>
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="ghost"
                   onClick={() => router.push('/transactions')}
                   disabled={submitting}
                 >

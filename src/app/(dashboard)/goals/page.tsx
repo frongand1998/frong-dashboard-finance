@@ -171,12 +171,12 @@ export default function GoalsPage() {
                     {/* Actions */}
                     <div className="flex gap-2 pt-2">
                       <Link href={`/edit-goal/${goal.id}`} className="flex-1">
-                        <Button variant="secondary" className="w-full text-sm">
+                        <Button variant="ghost" className="w-full text-sm">
                           Edit
                         </Button>
                       </Link>
                       <Button
-                        variant="secondary"
+                        variant="ghost"
                         onClick={() => handleDelete(goal.id)}
                         disabled={deleting === goal.id}
                         className="text-sm text-danger hover:text-danger"
