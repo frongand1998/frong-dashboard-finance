@@ -74,9 +74,9 @@ export async function updateGoal(id: string, data: GoalFormData) {
       .update({
         ...validated,
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('user_id', userId) as any;
 
     if (error) {
       console.error('Supabase error:', error);
