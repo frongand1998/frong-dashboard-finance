@@ -10,6 +10,10 @@ export async function getCategorySummary(startDate?: string, endDate?: string) {
       return { success: false, error: 'Unauthorized' };
     }
 
+    if (!supabase) {
+      return { success: false, error: 'Database connection failed' };
+    }
+
     let query = supabase
       .from('transactions')
       .select('type, category, amount')
