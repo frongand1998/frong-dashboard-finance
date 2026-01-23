@@ -69,14 +69,18 @@ export async function updateGoal(id: string, data: GoalFormData) {
 
     const validated = goalSchema.parse(data);
 
-    const { error } = await supabase
+    const updateData = {
+      ...validated,
+      updated_at: new Date().toISOString(),
+    };
+
+    const result = await (supabase as any)
       .from('goals')
-      .update({
-        ...validated,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', id)
-      .eq('user_id', userId) as any;
+      .eq('user_id', userId);
+
+    const { error } = result;
 
     if (error) {
       console.error('Supabase error:', error);

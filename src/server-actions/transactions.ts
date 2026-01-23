@@ -145,12 +145,14 @@ export async function updateTransaction(id: string, data: TransactionFormData) {
 
     const validated = transactionSchema.parse(data);
 
-    const { data: result, error } = await supabase
+    const updateData = {
+      ...validated,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: result, error } = await (supabase as any)
       .from('transactions')
-      .update({
-        ...validated,
-        updated_at: new Date().toISOString(),
-      } as any)
+      .update(updateData)
       .eq('id', id)
       .eq('user_id', userId)
       .select()
