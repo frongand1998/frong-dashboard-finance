@@ -312,42 +312,86 @@ export default function TransactionsPage() {
                 )}
               </div>
             ) : (
-              <div className="w-full overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-sm text-muted-foreground bg-muted/30">
-                      <th className="text-left py-3 px-3 sm:px-4 font-medium whitespace-nowrap">Date</th>
-                      <th className="text-left py-3 px-3 sm:px-4 font-medium whitespace-nowrap">Category</th>
-                      <th className="text-left py-3 px-3 sm:px-4 font-medium whitespace-nowrap">Type</th>
-                      <th className="text-right py-3 px-3 sm:px-4 font-medium whitespace-nowrap">Amount</th>
-                      <th className="text-left py-3 px-3 sm:px-4 font-medium hidden md:table-cell">Note</th>
-                      <th className="text-right py-3 px-3 sm:px-4 font-medium whitespace-nowrap">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border bg-white">
+              <>
+                {/* Mobile Card View */}
+                <div className="block md:hidden">
+                  <div className="space-y-3 p-4">
+                    {transactions.map((tx) => (
+                      <Card key={tx.id} className="border-2 hover:border-accent/50 transition-colors">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant="default" className="text-xs">{tx.category}</Badge>
+                                <Badge variant={tx.type === 'income' ? 'success' : 'danger'} className="text-xs">
+                                  {tx.type}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{formatDate(tx.date)}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className={`text-lg font-bold ${
+                                tx.type === 'income' ? 'text-success' : 'text-danger'
+                              }`}>
+                                {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount, currency.code)}
+                              </p>
+                            </div>
+                          </div>
+                          {tx.note && (
+                            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                              {tx.note}
+                            </p>
+                          )}
+                          <div className="flex justify-end">
+                            <Link href={`/edit/${tx.id}`}>
+                              <Button variant="ghost" className="text-xs h-8">
+                                Edit
+                              </Button>
+                            </Link>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full min-w-[600px]">
+                    <thead>
+                      <tr className="text-sm text-muted-foreground bg-muted/30">
+                        <th className="text-left py-3 px-4 font-medium whitespace-nowrap">Date</th>
+                        <th className="text-left py-3 px-4 font-medium whitespace-nowrap">Category</th>
+                        <th className="text-left py-3 px-4 font-medium whitespace-nowrap">Type</th>
+                        <th className="text-right py-3 px-4 font-medium whitespace-nowrap">Amount</th>
+                        <th className="text-left py-3 px-4 font-medium">Note</th>
+                        <th className="text-right py-3 px-4 font-medium whitespace-nowrap">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border bg-white">
                       {transactions.map((tx) => (
                         <tr
                           key={tx.id}
                           className="hover:bg-muted/50 transition-colors"
                         >
-                          <td className="py-3 px-3 sm:px-4 text-xs sm:text-sm whitespace-nowrap">{formatDate(tx.date)}</td>
-                          <td className="py-3 px-3 sm:px-4">
+                          <td className="py-3 px-4 text-sm whitespace-nowrap">{formatDate(tx.date)}</td>
+                          <td className="py-3 px-4">
                             <Badge variant="default" className="text-xs">{tx.category}</Badge>
                           </td>
-                          <td className="py-3 px-3 sm:px-4">
+                          <td className="py-3 px-4">
                             <Badge variant={tx.type === 'income' ? 'success' : 'danger'} className="text-xs">
                               {tx.type}
                             </Badge>
                           </td>
-                          <td className={`py-3 px-3 sm:px-4 text-right font-semibold text-xs sm:text-sm whitespace-nowrap ${
+                          <td className={`py-3 px-4 text-right font-semibold text-sm whitespace-nowrap ${
                             tx.type === 'income' ? 'text-success' : 'text-danger'
                           }`}>
                             {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount, currency.code)}
                           </td>
-                          <td className="py-3 px-3 sm:px-4 text-xs sm:text-sm text-muted-foreground max-w-xs truncate hidden md:table-cell">
+                          <td className="py-3 px-4 text-sm text-muted-foreground max-w-xs truncate">
                             {tx.note || '-'}
                           </td>
-                          <td className="py-3 px-3 sm:px-4 text-right whitespace-nowrap">
+                          <td className="py-3 px-4 text-right whitespace-nowrap">
                             <Link href={`/edit/${tx.id}`}>
                               <Button variant="ghost" className="text-xs px-2 py-1">
                                 Edit
@@ -359,6 +403,7 @@ export default function TransactionsPage() {
                     </tbody>
                   </table>
                 </div>
+              </>
             )}
           </CardContent>
         </Card>
