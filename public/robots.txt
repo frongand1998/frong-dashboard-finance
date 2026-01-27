@@ -1,0 +1,8 @@
+# robots.txt for Frong Finance
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /(dashboard)/
+Disallow: /(auth)/
+
+Sitemap: https://frong-finance.vercel.app/sitemap.xml

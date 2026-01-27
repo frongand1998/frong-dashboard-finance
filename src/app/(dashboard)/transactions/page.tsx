@@ -6,7 +6,7 @@ import { PageShell } from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Download, Search } from 'lucide-react';
 import { getTransactions, deleteAllTransactions } from '@/server-actions/transactions';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -20,6 +20,7 @@ export default function TransactionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -56,12 +57,61 @@ export default function TransactionsPage() {
       filtered = filtered.filter(tx => tx.date <= endDate);
     }
 
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(tx => 
+        tx.category.toLowerCase().includes(search) ||
+        tx.note?.toLowerCase().includes(search) ||
+        tx.amount.toString().includes(search) ||
+        tx.type.toLowerCase().includes(search)
+      );
+    }
+
     setTransactions(filtered);
-  }, [startDate, endDate, allTransactions]);
+  }, [startDate, endDate, searchTerm, allTransactions]);
 
   const handleClearFilters = () => {
     setStartDate('');
     setEndDate('');
+    setSearchTerm('');
+  };
+
+  const handleExportCSV = () => {
+    // Create CSV header
+    const headers = ['Date', 'Type', 'Category', 'Amount', 'Note'];
+    
+    // Create CSV rows
+    const rows = transactions.map(tx => [
+      formatDate(tx.date),
+      tx.type,
+      tx.category,
+      tx.amount,
+      tx.note || ''
+    ]);
+    
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => 
+        // Escape quotes and wrap in quotes if contains comma
+        typeof cell === 'string' && (cell.includes(',') || cell.includes('"'))
+          ? `"${cell.replace(/"/g, '""')}"`
+          : cell
+      ).join(','))
+    ].join('\n');
+    
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `transactions_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleDeleteAll = async () => {
@@ -97,6 +147,16 @@ export default function TransactionsPage() {
             </p>
           </div>
           <div className="flex gap-3 flex-wrap">
+            {transactions.length > 0 && (
+              <Button
+                variant="ghost"
+                onClick={handleExportCSV}
+                className="text-accent hover:bg-accent/10"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </Button>
+            )}
             {allTransactions.length > 0 && (
               <Button
                 variant="ghost"
@@ -158,12 +218,31 @@ export default function TransactionsPage() {
           </div>
         )}
 
-        {/* Date Filters */}
+        {/* Search and Filters */}
         <Card>
           <CardHeader>
-            <CardTitle>Date Filters</CardTitle>
+            <CardTitle>Search & Filters</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* Search Bar */}
+            <div>
+              <label htmlFor="search" className="block text-sm font-medium mb-2">
+                Search
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  id="search"
+                  type="text"
+                  placeholder="Search by category, note, amount, or type..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-white pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+            </div>
+
+            {/* Date Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <label htmlFor="startDate" className="block text-sm font-medium mb-2">

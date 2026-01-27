@@ -1,6 +1,29 @@
 ## Frong Finance Dashboard
 
-Responsive financial tracking dashboard with authentication, real-time data fetching, and interactive charts built with Next.js 14, TypeScript, Tailwind CSS v4, Clerk auth, and Supabase PostgreSQL.
+> 🎯 Smart personal finance management with payment slip OCR, multi-currency support, and goal tracking.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/frong-finance)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Responsive financial tracking dashboard with authentication, real-time data fetching, OCR payment slip scanning, and interactive charts built with Next.js 14, TypeScript, Tailwind CSS v4, Clerk auth, and Supabase PostgreSQL.
+
+### ✨ Key Features
+
+- 📸 **Payment Slip OCR** - Scan Thai payment slips (SCB, Krungthai, etc.) with Tesseract.js
+- 💰 **Transaction Management** - Track income/expenses with categories and notes
+- 🎯 **Goal Tracking** - Set and monitor savings targets
+- 📊 **Visual Analytics** - Charts and summaries of your financial health
+- 🔍 **Search & Filter** - Find transactions instantly
+- 📥 **CSV Export** - Download your data for external analysis
+- 🌐 **Multi-Currency** - Support for THB, USD, EUR, and more
+- 📱 **Mobile Responsive** - Works perfectly on all devices
+- 🔒 **Secure** - Clerk authentication + Supabase RLS
+
+### 🎬 Demo
+
+**Live Demo**: [https://frong-finance.vercel.app](https://frong-finance.vercel.app)
+
+**Documentation**: [DOCUMENTATION.md](./DOCUMENTATION.md)
 
 ### Tech Stack
 
@@ -135,29 +158,73 @@ supabase.sql                 # Database migration script
 middleware.ts                # Clerk route protection
 ```
 
-### Next Steps
+### 🚀 Deployment
 
-1. **Implement Forms**
-   - Transaction form with React Hook Form + Zod resolver
-   - Goal creation and editing forms
-   - Toast notifications for success/error feedback
+**Deploy to Vercel:**
 
-2. **Transactions Page**
-   - Pagination for transaction history
-   - Date range and category filters
-   - Search functionality
-   - Bulk delete/export options
+1. Click the "Deploy with Vercel" button above
+2. Add environment variables in Vercel dashboard
+3. Deploy and enjoy!
 
-3. **Goals Management**
-   - Goal contribution tracking
-   - Automated status updates (on_track, at_risk, off_track)
-   - Progress notifications
+**Manual Deployment:**
 
-4. **Enhancements**
-   - Chart time range selector (day, week, month, year)
-   - CSV export for transactions
-   - Budget tracking and alerts
-   - Responsive mobile optimization
+```bash
+npm run build
+vercel --prod
+```
+
+### 📖 Documentation
+
+See [DOCUMENTATION.md](./DOCUMENTATION.md) for comprehensive user guide including:
+
+- Getting started
+- Payment slip OCR guide
+- Transaction management
+- Goal tracking
+- Export and search features
+- FAQ and troubleshooting
+
+### 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### 🌟 Star History
+
+If you find this project useful, please consider giving it a star! ⭐
+
+### 📧 Contact & Support
+
+- **Email**: hello@frongfinance.com
+- **Issues**: [GitHub Issues](https://github.com/yourusername/frong-finance/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/frong-finance/discussions)
+
+### 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/) - React framework
+- [Clerk](https://clerk.com/) - Authentication
+- [Supabase](https://supabase.com/) - Backend & database
+- [Tesseract.js](https://tesseract.projectnaptha.com/) - OCR engine
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [Recharts](https://recharts.org/) - Charts
+- [Lucide](https://lucide.dev/) - Icons
+
+---
+
+Built with ❤️ by the Frong Finance team
+
+- CSV export for transactions
+- Budget tracking and alerts
+- Responsive mobile optimization
 
 5. **Deployment**
    - Deploy to Vercel with environment variables

@@ -14,8 +14,43 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Frong Finance Dashboard",
-  description: "Track income, expenses, and financial goals.",
+  title: {
+    default: "Frong Finance - Smart Personal Finance Management",
+    template: "%s | Frong Finance"
+  },
+  description: "Track expenses, scan Thai payment slips with OCR, set financial goals, and manage your money smarter. Free personal finance app with multi-currency support.",
+  keywords: ["personal finance", "expense tracker", "budget app", "payment slip OCR", "Thai banking", "financial goals", "money management", "expense management", "budget planner"],
+  authors: [{ name: "Frong Finance" }],
+  creator: "Frong Finance",
+  publisher: "Frong Finance",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://frong-finance.vercel.app",
+    title: "Frong Finance - Smart Personal Finance Management",
+    description: "Track expenses, scan Thai payment slips with OCR, and achieve your financial goals. Free personal finance app.",
+    siteName: "Frong Finance",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Frong Finance - Smart Personal Finance Management",
+    description: "Track expenses, scan payment slips, and manage your money smarter. 100% free.",
+    creator: "@frongfinance",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: "your-google-verification-code",
+  },
 };
 
 export default function RootLayout({
