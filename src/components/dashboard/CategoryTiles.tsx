@@ -14,10 +14,12 @@ export function CategoryTiles({
   categories,
   currencyCode = 'USD',
   showAll = false,
+  onCategoryClick,
 }: {
   categories: CategoryData[];
   currencyCode?: string;
   showAll?: boolean;
+  onCategoryClick?: (category: string) => void;
 }) {
   if (categories.length === 0) {
     return (
@@ -40,6 +42,13 @@ export function CategoryTiles({
     education: { icon: '🎓', color: '#6366f1' },
     gift: { icon: '🎁', color: '#f43f5e' },
     donation: { icon: '🎁', color: '#f43f5e' },
+    savingfund: { icon: '🏦', color: '#0ea5e9' },
+    yarisscross: { icon: '🚘', color: '#f97316' },
+    termgame: { icon: '🎮', color: '#8b5cf6' },
+    bts: { icon: '🚇', color: '#3b82f6' },
+    oil: { icon: '⛽', color: '#ef4444' },
+    shopee: { icon: '🛍️', color: '#f97316' },
+    parking: { icon: '🅿️', color: '#64748b' },
     uncategorized: { icon: '📌', color: '#94a3b8' },
   };
 
@@ -127,9 +136,20 @@ export function CategoryTiles({
     ],
   };
 
+  const onEvents = onCategoryClick
+    ? {
+        click: (params: any) => {
+          const category = params?.name;
+          if (category) {
+            onCategoryClick(category);
+          }
+        },
+      }
+    : undefined;
+
   return (
     <div className="h-[420px]">
-      <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+      <ReactECharts option={option} style={{ height: '100%', width: '100%' }} onEvents={onEvents} />
     </div>
   );
 }

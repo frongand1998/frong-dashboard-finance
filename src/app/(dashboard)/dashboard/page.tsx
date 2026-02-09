@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { IncomeExpenseChart } from '@/components/charts/IncomeExpenseChart';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { GoalProgress } from '@/components/dashboard/GoalProgress';
@@ -18,6 +19,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import type { Transaction, Goal } from '@/types';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { currency } = useCurrency();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -164,24 +166,109 @@ export default function DashboardPage() {
                     className="rounded-md border border-border bg-white px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="text-xs"
-                  onClick={() => {
-                    const now = new Date();
-                    const start = new Date(now.getFullYear(), now.getMonth(), 1)
-                      .toISOString()
-                      .split('T')[0];
-                    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-                      .toISOString()
-                      .split('T')[0];
-                    setStartDate(start);
-                    setEndDate(end);
-                  }}
-                >
-                  This Month
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-xs"
+                    onClick={() => {
+                      const now = new Date();
+                      const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+                        .toISOString()
+                        .split('T')[0];
+                      setStartDate(yesterday);
+                      setEndDate(yesterday);
+                    }}
+                  >
+                    Last Day
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-xs"
+                    onClick={() => {
+                      const today = new Date()
+                        .toISOString()
+                        .split('T')[0];
+                      setStartDate(today);
+                      setEndDate(today);
+                    }}
+                  >
+                    Today
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-xs"
+                    onClick={() => {
+                      const now = new Date();
+                      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+                        .toISOString()
+                        .split('T')[0];
+                      const end = new Date(now.getFullYear(), now.getMonth(), 0)
+                        .toISOString()
+                        .split('T')[0];
+                      setStartDate(start);
+                      setEndDate(end);
+                    }}
+                  >
+                    Last Month
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-xs"
+                    onClick={() => {
+                      const now = new Date();
+                      const start = new Date(now.getFullYear(), now.getMonth(), 1)
+                        .toISOString()
+                        .split('T')[0];
+                      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+                        .toISOString()
+                        .split('T')[0];
+                      setStartDate(start);
+                      setEndDate(end);
+                    }}
+                  >
+                    This Month
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-xs"
+                    onClick={() => {
+                      const now = new Date();
+                      const start = new Date(now.getFullYear() - 1, 0, 1)
+                        .toISOString()
+                        .split('T')[0];
+                      const end = new Date(now.getFullYear() - 1, 11, 31)
+                        .toISOString()
+                        .split('T')[0];
+                      setStartDate(start);
+                      setEndDate(end);
+                    }}
+                  >
+                    Last Year
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-xs"
+                    onClick={() => {
+                      const now = new Date();
+                      const start = new Date(now.getFullYear(), 0, 1)
+                        .toISOString()
+                        .split('T')[0];
+                      const end = new Date(now.getFullYear(), 11, 31)
+                        .toISOString()
+                        .split('T')[0];
+                      setStartDate(start);
+                      setEndDate(end);
+                    }}
+                  >
+                    This Year
+                  </Button>
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -217,7 +304,18 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <CategoryTiles categories={categories} currencyCode={currency.code} showAll />
+              <CategoryTiles
+                categories={categories}
+                currencyCode={currency.code}
+                showAll
+                onCategoryClick={(category) => {
+                  const params = new URLSearchParams();
+                  params.set('category', category);
+                  params.set('startDate', startDate);
+                  params.set('endDate', endDate);
+                  router.push(`/transactions?${params.toString()}`);
+                }}
+              />
             )}
           </CardContent>
         </Card>

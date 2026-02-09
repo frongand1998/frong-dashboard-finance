@@ -1,10 +1,37 @@
 'use server';
 
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabaseClient';
 import { OcrUsageInfo } from '@/lib/ocr/parser';
 
 const OCR_MONTHLY_LIMIT = 50; // Free tier: 50 scans per month
+const VIP_OCR_LIMIT = 10000; // Effectively unlimited
+
+async function getUserEmail(): Promise<string | null> {
+  try {
+    const user = await currentUser();
+    return user?.emailAddresses?.[0]?.emailAddress?.toLowerCase() || null;
+  } catch {
+    return null;
+  }
+}
+
+async function getUserLimit(): Promise<number> {
+  if (!supabase) return OCR_MONTHLY_LIMIT;
+
+  const email = await getUserEmail();
+  if (!email) return OCR_MONTHLY_LIMIT;
+
+  const { data, error } = await supabase
+    .from('ocr_limits')
+    .select('max_monthly')
+    .eq('email', email)
+    .single();
+
+  if (error || !data?.max_monthly) return OCR_MONTHLY_LIMIT;
+
+  return data.max_monthly > OCR_MONTHLY_LIMIT ? data.max_monthly : OCR_MONTHLY_LIMIT;
+}
 
 /**
  * Get current OCR usage for the authenticated user
@@ -42,7 +69,8 @@ export async function getOcrUsage(): Promise<{
     }
 
     const used = data?.length || 0;
-    const remaining = Math.max(0, OCR_MONTHLY_LIMIT - used);
+    const limit = await getUserLimit();
+    const remaining = Math.max(0, limit - used);
     
     // Calculate next reset date (first day of next month)
     const resetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
@@ -51,7 +79,7 @@ export async function getOcrUsage(): Promise<{
       success: true,
       data: {
         used,
-        limit: OCR_MONTHLY_LIMIT,
+        limit,
         remaining,
         resetDate: resetDate.toISOString(),
       },

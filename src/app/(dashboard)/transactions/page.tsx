@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { PageShell } from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import type { Transaction } from '@/types';
 
 export default function TransactionsPage() {
   const { currency } = useCurrency();
+  const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +48,22 @@ export default function TransactionsPage() {
 
     fetchTransactions();
   }, []);
+
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    const startParam = searchParams.get('startDate');
+    const endParam = searchParams.get('endDate');
+
+    if (categoryParam) {
+      setSearchTerm(categoryParam);
+    }
+    if (startParam) {
+      setStartDate(startParam);
+    }
+    if (endParam) {
+      setEndDate(endParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let filtered = [...allTransactions];
