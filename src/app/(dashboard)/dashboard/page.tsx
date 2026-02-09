@@ -223,7 +223,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <CategoryTiles categories={categories} currencyCode={currency.code} />
+              <CategoryTiles categories={categories} currencyCode={currency.code} showAll />
             )}
           </CardContent>
         </Card>

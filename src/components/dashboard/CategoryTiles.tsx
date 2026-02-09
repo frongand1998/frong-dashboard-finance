@@ -14,9 +14,11 @@ type CategoryData = {
 export function CategoryTiles({
   categories,
   currencyCode = 'USD',
+  showAll = false,
 }: {
   categories: CategoryData[];
   currencyCode?: string;
+  showAll?: boolean;
 }) {
   if (categories.length === 0) {
     return (
@@ -26,8 +28,8 @@ export function CategoryTiles({
     );
   }
 
-  // Get top 6 categories
-  const topCategories = categories.slice(0, 6);
+  // Get categories to display
+  const topCategories = showAll ? categories : categories.slice(0, 6);
   const maxTotal = Math.max(...topCategories.map(c => c.total));
 
   // Calculate size classes based on value

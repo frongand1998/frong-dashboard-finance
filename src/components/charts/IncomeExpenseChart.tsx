@@ -1,15 +1,7 @@
 'use client';
 
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { formatCurrency } from "@/lib/utils";
+import ReactECharts from 'echarts-for-react';
+import { formatCurrency } from '@/lib/utils';
 
 export type IncomeExpenseDatum = {
   label: string;
@@ -23,48 +15,120 @@ type Props = {
 };
 
 export const IncomeExpenseChart = ({ data, currencyCode = 'USD' }: Props) => {
+  const labels = data.map((item) => item.label);
+  const incomeSeries = data.map((item) => item.income);
+  const expenseSeries = data.map((item) => item.expense);
+
+  const option = {
+    grid: {
+      left: 12,
+      right: 16,
+      top: 36,
+      bottom: 48,
+      containLabel: true,
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+      },
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      borderColor: '#e2e8f0',
+      borderWidth: 1,
+      textStyle: {
+        color: '#0f172a',
+        fontSize: 12,
+      },
+      formatter: (params: any) => {
+        const income = params.find((p: any) => p.seriesName === 'Income')?.value ?? 0;
+        const expense = params.find((p: any) => p.seriesName === 'Expenses')?.value ?? 0;
+        const label = params[0]?.axisValue ?? '';
+
+        return `
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:160px;">
+            <div style="color:#64748b;font-size:11px;">${label}</div>
+            <div style="display:flex;justify-content:space-between;gap:12px;">
+              <span style="color:#10b981;">Income</span>
+              <strong>${formatCurrency(income, currencyCode)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;">
+              <span style="color:#ef4444;">Expenses</span>
+              <strong>${formatCurrency(expense, currencyCode)}</strong>
+            </div>
+          </div>
+        `;
+      },
+    },
+    legend: {
+      top: 0,
+      left: 0,
+      itemWidth: 10,
+      itemHeight: 10,
+    },
+    xAxis: {
+      type: 'category',
+      data: labels,
+      boundaryGap: false,
+      axisLine: { lineStyle: { color: '#e2e8f0' } },
+      axisTick: { show: false },
+      axisLabel: { color: '#64748b' },
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: '#e2e8f0' } },
+      axisLabel: {
+        color: '#64748b',
+        formatter: (value: number) => (value >= 1000 ? `${value / 1000}k` : `${value}`),
+      },
+    },
+    dataZoom: [
+      {
+        type: 'inside',
+        zoomOnMouseWheel: true,
+        moveOnMouseMove: true,
+        moveOnMouseWheel: true,
+        throttle: 50,
+      },
+      {
+        type: 'slider',
+        height: 20,
+        bottom: 8,
+        borderColor: 'transparent',
+        fillerColor: 'rgba(148,163,184,0.2)',
+        handleStyle: { color: '#94a3b8' },
+      },
+    ],
+    series: [
+      {
+        name: 'Income',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 6,
+        lineStyle: { width: 2, color: '#10b981' },
+        itemStyle: { color: '#10b981' },
+        areaStyle: { color: 'rgba(16,185,129,0.12)' },
+        data: incomeSeries,
+      },
+      {
+        name: 'Expenses',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 6,
+        lineStyle: { width: 2, color: '#ef4444' },
+        itemStyle: { color: '#ef4444' },
+        areaStyle: { color: 'rgba(239,68,68,0.12)' },
+        data: expenseSeries,
+      },
+    ],
+  };
+
   return (
-    <ResponsiveContainer width="100%" height={320}>
-      <AreaChart data={data} margin={{ left: 4, right: 4 }}>
-        <defs>
-          <linearGradient id="income" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
-          </linearGradient>
-          <linearGradient id="expense" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.25} />
-            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-        <XAxis dataKey="label" tickLine={false} axisLine={false} />
-        <YAxis tickFormatter={(v) => `${v / 1000}k`} tickLine={false} axisLine={false} />
-        <Tooltip
-          formatter={(value, name) => {
-            const numericValue = typeof value === "number" ? value : Number(value ?? 0);
-            return [formatCurrency(numericValue, currencyCode), name];
-          }}
-          contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0" }}
-        />
-        <Area
-          type="monotone"
-          dataKey="income"
-          stroke="#0ea5e9"
-          strokeWidth={2}
-          fillOpacity={1}
-          fill="url(#income)"
-          name="Income"
-        />
-        <Area
-          type="monotone"
-          dataKey="expense"
-          stroke="#ef4444"
-          strokeWidth={2}
-          fillOpacity={1}
-          fill="url(#expense)"
-          name="Expenses"
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+    <div className="h-[320px]">
+      <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+    </div>
   );
 };

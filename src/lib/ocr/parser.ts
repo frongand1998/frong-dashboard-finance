@@ -33,11 +33,13 @@ export function parsePaymentSlipText(text: string): ParsedSlipData {
   // Extract amount (จำนวนเงิน)
   const amountPatterns = [
     /จำนวนเงิน[:\s]+([\d,]+(?:[.,]\d{2})?)/i,
-    /จ[าำ]นวนเง[ิี]น[:\s]+(\d+(?:[.,]\d{2})?)/i, // Handle OCR errors
-    /amount[:\s]+(\d+(?:[.,]\d{2})?)/i,
-    /total[:\s]+(\d+(?:[.,]\d{2})?)/i,
-    /ยอดเงิน[:\s]+(\d+(?:[.,]\d{2})?)/i,
-    /เง[ิี]น[:\s]+(\d+(?:[.,]\d{2})?)/i,
+    /จ[าำ]นวนเง[ิี]น[:\s]+([\d,]+(?:[.,]\d{2})?)/i, // Handle OCR errors
+    /amount[:\s]+([\d,]+(?:[.,]\d{2})?)/i,
+    /total[:\s]+([\d,]+(?:[.,]\d{2})?)/i,
+    /ยอดเงิน[:\s]+([\d,]+(?:[.,]\d{2})?)/i,
+    /เง[ิี]น[:\s]+([\d,]+(?:[.,]\d{2})?)/i,
+    /(\d{1,3}(?:,\d{3})+(?:\.\d{2})?)\s*(?:บาท|baht)?/i, // 1,600.00
+    /(\d{4,})(?:\.\d{2})?\s*(?:บาท|baht)?/i, // 12000 or 12000.00
     /(\d+\.\d{2})\s*(?:บาท|baht)/i, // Amount followed by currency
     /^[\s\S]*?(\d+\.\d{2})[\s\S]*$/m, // Last resort: any number with 2 decimals
   ];
@@ -52,8 +54,9 @@ export function parsePaymentSlipText(text: string): ParsedSlipData {
         // Treat commas as thousand separators
         normalizedAmount = rawAmount.replace(/,/g, '');
       } else if (rawAmount.includes(',')) {
-        // Treat comma as decimal separator
-        normalizedAmount = rawAmount.replace(',', '.');
+        // If value has commas and is long, treat as thousand separators; otherwise decimal
+        const digitsOnly = rawAmount.replace(/,/g, '');
+        normalizedAmount = digitsOnly.length >= 4 ? digitsOnly : rawAmount.replace(',', '.');
       }
 
       result.amount = parseFloat(normalizedAmount);
@@ -62,9 +65,9 @@ export function parsePaymentSlipText(text: string): ParsedSlipData {
     }
   }
 
-  // If OCR dropped zeros (e.g., "1,6"), try to find the largest amount-like number in text
-  if (result.amount !== undefined && result.amount < 10) {
-    const amountCandidates = text.match(/\d{1,3}(?:,\d{3})+(?:\.\d{2})?/g) || [];
+  // If OCR dropped digits (e.g., "12" instead of "12000"), find the largest amount-like number in text
+  if (result.amount !== undefined && result.amount < 100) {
+    const amountCandidates = text.match(/\d{1,3}(?:,\d{3})+(?:\.\d{2})?|\d{4,}(?:\.\d{2})?/g) || [];
     const parsedCandidates = amountCandidates
       .map((value) => {
         const normalized = value.replace(/,/g, '');

@@ -33,12 +33,21 @@ export async function getCategorySummary(startDate?: string, endDate?: string) {
       return { success: false, error: error.message || 'Failed to fetch category summary' };
     }
 
-    // Group by category and type
-    const categoryMap = new Map<string, { income: number; expense: number; total: number }>();
+    // Group by category and type (normalize names)
+    const categoryMap = new Map<string, { category: string; income: number; expense: number; total: number }>();
 
     data?.forEach((tx: any) => {
-      const key = tx.category;
-      const existing = categoryMap.get(key) || { income: 0, expense: 0, total: 0 };
+      const rawCategory = typeof tx.category === 'string' ? tx.category : '';
+      const trimmedCategory = rawCategory.trim().replace(/\s+/g, ' ');
+      const displayCategory = trimmedCategory || 'Uncategorized';
+      const key = displayCategory.toLowerCase();
+
+      const existing = categoryMap.get(key) || {
+        category: displayCategory,
+        income: 0,
+        expense: 0,
+        total: 0,
+      };
       
       if (tx.type === 'income') {
         existing.income += Number(tx.amount);
@@ -52,9 +61,8 @@ export async function getCategorySummary(startDate?: string, endDate?: string) {
     });
 
     // Convert to array and sort by total (descending)
-    const categories = Array.from(categoryMap.entries())
-      .map(([category, amounts]) => ({
-        category,
+    const categories = Array.from(categoryMap.values())
+      .map((amounts) => ({
         ...amounts,
       }))
       .sort((a, b) => b.total - a.total);
