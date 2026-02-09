@@ -8,7 +8,7 @@ import { PageShell } from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ImageUpload } from '@/components/transaction/ImageUpload';
-import { AlertTriangle, Info } from 'lucide-react';
+import { AlertTriangle, Info, Trash2 } from 'lucide-react';
 import { createTransaction, getTransactions } from '@/server-actions/transactions';
 import { getCategories } from '@/server-actions/categories';
 import { getOcrUsage, recordOcrUsage } from '@/server-actions/ocr-usage';
@@ -167,17 +167,38 @@ export default function AddRecordPage() {
     setIsSubmitting(true);
     let successCount = 0;
     let failCount = 0;
+    const failedReasons: string[] = [];
 
     for (const txData of extractedTransactions) {
       try {
-        const result = await createTransaction(txData);
+        const amountValue = typeof txData.amount === 'number'
+          ? txData.amount
+          : Number(txData.amount);
+
+        if (!amountValue || Number.isNaN(amountValue) || amountValue <= 0) {
+          failCount++;
+          failedReasons.push('Missing or invalid amount');
+          continue;
+        }
+
+        const normalizedData: TransactionFormData = {
+          type: txData.type || 'expense',
+          category: txData.category || 'Uncategorized',
+          amount: amountValue,
+          date: txData.date || new Date().toISOString().split('T')[0],
+          note: txData.note || undefined,
+        };
+
+        const result = await createTransaction(normalizedData);
         if (result.success) {
           successCount++;
         } else {
           failCount++;
+          failedReasons.push(result.error || 'Failed to create transaction');
         }
       } catch (err) {
         failCount++;
+        failedReasons.push('Unexpected error while creating transaction');
       }
     }
 
@@ -196,7 +217,8 @@ export default function AddRecordPage() {
         router.push('/transactions');
       }, 1500);
     } else {
-      setError('Failed to create transactions');
+      const uniqueReasons = Array.from(new Set(failedReasons));
+      setError(`Failed to create transactions. ${uniqueReasons.join(' • ')}`);
     }
   };
 
@@ -205,6 +227,10 @@ export default function AddRecordPage() {
     setImagePreviews([]);
     setExtractedTransactions([]);
     setOcrSuccess(false);
+  };
+
+  const handleRemoveExtractedTransaction = (index: number) => {
+    setExtractedTransactions((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleCancelDuplicate = async () => {
@@ -533,14 +559,26 @@ export default function AddRecordPage() {
                     </div>
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {extractedTransactions.map((tx, idx) => (
-                        <div key={idx} className="bg-white rounded p-2 text-xs flex justify-between items-center">
-                          <div>
+                        <div key={idx} className="bg-white rounded p-2 text-xs flex justify-between items-center gap-2">
+                          <div className="flex-1 min-w-0">
                             <span className="font-medium">#{idx + 1}</span>
-                            {tx.merchant && <span className="ml-2">{tx.merchant}</span>}
+                            {tx.merchant && <span className="ml-2 truncate">{tx.merchant}</span>}
                             {tx.amount && <span className="ml-2 text-accent font-bold">฿{tx.amount}</span>}
                           </div>
-                          <div className="text-muted-foreground">
-                            {tx.date || 'No date'}
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground whitespace-nowrap">
+                              {tx.date || 'No date'}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveExtractedTransaction(idx)}
+                              className="h-7 w-7 p-0 text-danger hover:bg-danger/10"
+                              aria-label={`Remove transaction ${idx + 1}`}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
                           </div>
                         </div>
                       ))}

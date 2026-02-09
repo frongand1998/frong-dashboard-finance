@@ -32,7 +32,7 @@ export function parsePaymentSlipText(text: string): ParsedSlipData {
 
   // Extract amount (จำนวนเงิน)
   const amountPatterns = [
-    /จำนวนเงิน[:\s]+(\d+(?:[.,]\d{2})?)/i,
+    /จำนวนเงิน[:\s]+([\d,]+(?:[.,]\d{2})?)/i,
     /จ[าำ]นวนเง[ิี]น[:\s]+(\d+(?:[.,]\d{2})?)/i, // Handle OCR errors
     /amount[:\s]+(\d+(?:[.,]\d{2})?)/i,
     /total[:\s]+(\d+(?:[.,]\d{2})?)/i,
@@ -45,10 +45,38 @@ export function parsePaymentSlipText(text: string): ParsedSlipData {
   for (const pattern of amountPatterns) {
     const match = text.match(pattern);
     if (match) {
-      const amountStr = match[1].replace(',', '.'); // Handle comma as decimal
-      result.amount = parseFloat(amountStr);
+      const rawAmount = match[1].trim();
+      let normalizedAmount = rawAmount;
+
+      if (rawAmount.includes(',') && rawAmount.includes('.')) {
+        // Treat commas as thousand separators
+        normalizedAmount = rawAmount.replace(/,/g, '');
+      } else if (rawAmount.includes(',')) {
+        // Treat comma as decimal separator
+        normalizedAmount = rawAmount.replace(',', '.');
+      }
+
+      result.amount = parseFloat(normalizedAmount);
       console.log('Amount extracted:', result.amount, 'from:', match[0]);
       break;
+    }
+  }
+
+  // If OCR dropped zeros (e.g., "1,6"), try to find the largest amount-like number in text
+  if (result.amount !== undefined && result.amount < 10) {
+    const amountCandidates = text.match(/\d{1,3}(?:,\d{3})+(?:\.\d{2})?/g) || [];
+    const parsedCandidates = amountCandidates
+      .map((value) => {
+        const normalized = value.replace(/,/g, '');
+        return parseFloat(normalized);
+      })
+      .filter((value) => !Number.isNaN(value));
+
+    if (parsedCandidates.length > 0) {
+      const maxCandidate = Math.max(...parsedCandidates);
+      if (maxCandidate > result.amount) {
+        result.amount = maxCandidate;
+      }
     }
   }
 

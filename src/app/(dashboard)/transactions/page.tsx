@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Download, Search } from 'lucide-react';
-import { getTransactions, deleteAllTransactions } from '@/server-actions/transactions';
+import { getTransactions, deleteAllTransactions, deleteTransaction } from '@/server-actions/transactions';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import type { Transaction } from '@/types';
@@ -23,6 +23,7 @@ export default function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -132,6 +133,28 @@ export default function TransactionsPage() {
       setError('An unexpected error occurred');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    const confirmed = window.confirm('Delete this transaction? This action cannot be undone.');
+    if (!confirmed) return;
+
+    setDeletingId(id);
+    setError(null);
+
+    try {
+      const result = await deleteTransaction(id);
+      if (result.success) {
+        setAllTransactions((prev) => prev.filter((tx) => tx.id !== id));
+        setTransactions((prev) => prev.filter((tx) => tx.id !== id));
+      } else {
+        setError(result.error || 'Failed to delete transaction');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -342,12 +365,20 @@ export default function TransactionsPage() {
                               {tx.note}
                             </p>
                           )}
-                          <div className="flex justify-end">
+                          <div className="flex justify-end gap-2">
                             <Link href={`/edit/${tx.id}`}>
                               <Button variant="ghost" className="text-xs h-8">
                                 Edit
                               </Button>
                             </Link>
+                            <Button
+                              variant="ghost"
+                              className="text-xs h-8 text-danger hover:bg-danger/10"
+                              onClick={() => handleDeleteTransaction(tx.id)}
+                              disabled={deletingId === tx.id}
+                            >
+                              {deletingId === tx.id ? 'Deleting...' : 'Remove'}
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -392,11 +423,21 @@ export default function TransactionsPage() {
                             {tx.note || '-'}
                           </td>
                           <td className="py-3 px-4 text-right whitespace-nowrap">
-                            <Link href={`/edit/${tx.id}`}>
-                              <Button variant="ghost" className="text-xs px-2 py-1">
-                                Edit
+                            <div className="inline-flex items-center gap-2">
+                              <Link href={`/edit/${tx.id}`}>
+                                <Button variant="ghost" className="text-xs px-2 py-1">
+                                  Edit
+                                </Button>
+                              </Link>
+                              <Button
+                                variant="ghost"
+                                className="text-xs px-2 py-1 text-danger hover:bg-danger/10"
+                                onClick={() => handleDeleteTransaction(tx.id)}
+                                disabled={deletingId === tx.id}
+                              >
+                                {deletingId === tx.id ? 'Deleting...' : 'Remove'}
                               </Button>
-                            </Link>
+                            </div>
                           </td>
                         </tr>
                       ))}
