@@ -9,7 +9,7 @@ import { CategoryTiles } from '@/components/dashboard/CategoryTiles';
 import { PageShell } from '@/components/layout/PageShell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DateRangeSelector, type DateRange } from '@/components/ui/DateRangeSelector';
+import { Button } from '@/components/ui/button';
 import { TrendingUp, TrendingDown, Target } from 'lucide-react';
 import { getTransactions, getTransactionsSummary } from '@/server-actions/transactions';
 import { getGoals } from '@/server-actions/goals';
@@ -25,7 +25,14 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState({ income: 0, expenses: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange>('month');
+  const [startDate, setStartDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,40 +40,16 @@ export default function DashboardPage() {
         setLoading(true);
         setError(null);
 
-        // Calculate date range based on selection
-        const now = new Date();
-        let startDate: Date;
-        let endDate: Date;
-
-        switch (dateRange) {
-          case 'day':
-            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-            break;
-          case 'week':
-            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-            break;
-          case 'month':
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-            break;
-          case 'year':
-            startDate = new Date(now.getFullYear(), 0, 1);
-            endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
-            break;
-        }
-
         const [txnResult, summaryResult, goalsResult, categoryResult] = await Promise.all([
           getTransactions(100, 0), // Get more transactions for filtering
           getTransactionsSummary(
-            startDate.toISOString().split('T')[0],
-            endDate.toISOString().split('T')[0]
+            startDate,
+            endDate
           ),
           getGoals(),
           getCategorySummary(
-            startDate.toISOString().split('T')[0],
-            endDate.toISOString().split('T')[0]
+            startDate,
+            endDate
           ),
         ]);
 
@@ -98,40 +81,14 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [dateRange]);
+  }, [startDate, endDate]);
 
   const net = summary.income - summary.expenses;
   
   // Filter transactions by selected date range
   const filteredTransactions = useMemo(() => {
-    const now = new Date();
-    let startDate: Date;
-    let endDate: Date;
-
-    switch (dateRange) {
-      case 'day':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-        break;
-      case 'week':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-        break;
-      case 'month':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-        break;
-      case 'year':
-        startDate = new Date(now.getFullYear(), 0, 1);
-        endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
-        break;
-    }
-
-    const startStr = startDate.toISOString().split('T')[0];
-    const endStr = endDate.toISOString().split('T')[0];
-
-    return transactions.filter(tx => tx.date >= startStr && tx.date <= endStr);
-  }, [transactions, dateRange]);
+    return transactions.filter(tx => tx.date >= startDate && tx.date <= endDate);
+  }, [transactions, startDate, endDate]);
 
   const recentTransactions = filteredTransactions.slice(0, 5);
 
@@ -188,7 +145,44 @@ export default function DashboardPage() {
                 <CardTitle>Income vs Expenses</CardTitle>
                 <CardDescription>Track your financial flow over time</CardDescription>
               </div>
-              <DateRangeSelector selected={dateRange} onChange={setDateRange} />
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-muted-foreground">From</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="rounded-md border border-border bg-white px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-muted-foreground">To</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="rounded-md border border-border bg-white px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-xs"
+                  onClick={() => {
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), now.getMonth(), 1)
+                      .toISOString()
+                      .split('T')[0];
+                    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+                      .toISOString()
+                      .split('T')[0];
+                    setStartDate(start);
+                    setEndDate(end);
+                  }}
+                >
+                  This Month
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>

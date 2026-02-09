@@ -1,8 +1,7 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
+import ReactECharts from 'echarts-for-react';
 import { formatCurrency } from '@/lib/utils';
-import { TrendingUp, TrendingDown } from 'lucide-react';
 
 type CategoryData = {
   category: string;
@@ -28,97 +27,109 @@ export function CategoryTiles({
     );
   }
 
-  // Get categories to display
-  const topCategories = showAll ? categories : categories.slice(0, 6);
-  const maxTotal = Math.max(...topCategories.map(c => c.total));
-
-  // Calculate size classes based on value
-  const getSizeClass = (total: number, index: number) => {
-    const percentage = maxTotal > 0 ? (total / maxTotal) * 100 : 0;
-    
-    // Top category gets col-span-2 if it's significantly larger
-    if (index === 0 && percentage === 100 && topCategories.length > 1) {
-      const secondPercentage = maxTotal > 0 ? (topCategories[1].total / maxTotal) * 100 : 0;
-      if (secondPercentage < 50) {
-        return 'sm:col-span-2';
-      }
-    }
-    
-    return '';
+  const CATEGORY_STYLES: Record<string, { icon: string; color: string }> = {
+    'food & dining': { icon: '🍔', color: '#f59e0b' },
+    groceries: { icon: '🛒', color: '#10b981' },
+    transportation: { icon: '🚗', color: '#3b82f6' },
+    shopping: { icon: '🛍️', color: '#ec4899' },
+    entertainment: { icon: '🎮', color: '#8b5cf6' },
+    healthcare: { icon: '🩺', color: '#ef4444' },
+    utilities: { icon: '💡', color: '#f97316' },
+    salary: { icon: '💰', color: '#22c55e' },
+    investment: { icon: '📈', color: '#14b8a6' },
+    education: { icon: '🎓', color: '#6366f1' },
+    gift: { icon: '🎁', color: '#f43f5e' },
+    donation: { icon: '🎁', color: '#f43f5e' },
+    uncategorized: { icon: '📌', color: '#94a3b8' },
   };
 
-  const getFontSize = (total: number) => {
-    const percentage = maxTotal > 0 ? (total / maxTotal) * 100 : 0;
-    if (percentage >= 80) return 'text-3xl';
-    if (percentage >= 50) return 'text-2xl';
-    return 'text-xl';
+  const getCategoryStyle = (category: string) => {
+    const name = category.toLowerCase();
+    const key = Object.keys(CATEGORY_STYLES).find((k) => name.includes(k));
+    return key ? CATEGORY_STYLES[key] : { icon: '📌', color: '#94a3b8' };
+  };
+
+  const isLightColor = (hex: string) => {
+    const cleaned = hex.replace('#', '');
+    const r = parseInt(cleaned.substring(0, 2), 16);
+    const g = parseInt(cleaned.substring(2, 4), 16);
+    const b = parseInt(cleaned.substring(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.6;
+  };
+
+  const displayCategories = showAll ? categories : categories.slice(0, 12);
+  const treemapData = displayCategories.map((cat) => {
+    const style = getCategoryStyle(cat.category);
+    return {
+      name: cat.category,
+      value: cat.total,
+      income: cat.income,
+      expense: cat.expense,
+      itemStyle: {
+        color: style.color,
+      },
+      label: {
+        color: isLightColor(style.color) ? '#0f172a' : '#ffffff',
+      },
+    };
+  });
+
+  const option = {
+    tooltip: {
+      formatter: (params: any) => {
+        const value = params.data?.value ?? 0;
+        const income = params.data?.income ?? 0;
+        const expense = params.data?.expense ?? 0;
+        return `
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:160px;">
+            <strong>${params.name}</strong>
+            <div>Total: ${formatCurrency(value, currencyCode)}</div>
+            <div style="color:#10b981;">Income: ${formatCurrency(income, currencyCode)}</div>
+            <div style="color:#ef4444;">Expenses: ${formatCurrency(expense, currencyCode)}</div>
+          </div>
+        `;
+      },
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      borderColor: '#e2e8f0',
+      borderWidth: 1,
+      textStyle: { color: '#0f172a', fontSize: 12 },
+    },
+    series: [
+      {
+        type: 'treemap',
+        data: treemapData,
+        roam: true,
+        nodeClick: false,
+        breadcrumb: { show: false },
+        upperLabel: { show: false },
+        itemStyle: {
+          borderColor: '#ffffff',
+          borderWidth: 2,
+          gapWidth: 2,
+        },
+        label: {
+          show: true,
+          formatter: (params: any) => {
+            const icon = getCategoryStyle(params.name || '').icon;
+            const income = params.data?.income ?? 0;
+            const expense = params.data?.expense ?? 0;
+            const net = income - expense;
+            const incomeText = formatCurrency(income, currencyCode);
+            const expenseText = formatCurrency(expense, currencyCode);
+            const netText = formatCurrency(Math.abs(net), currencyCode);
+            const netLabel = net >= 0 ? `+${netText}` : `-${netText}`;
+            return `${icon} ${params.name}\n↑ ${incomeText}  ↓ ${expenseText}\nNet ${netLabel}`;
+          },
+          overflow: 'truncate',
+        },
+      },
+    ],
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {topCategories.map((cat, index) => {
-        const percentage = maxTotal > 0 ? (cat.total / maxTotal) * 100 : 0;
-        const isExpenseHeavy = cat.expense > cat.income;
-        const sizeClass = getSizeClass(cat.total, index);
-        const fontSize = getFontSize(cat.total);
-
-        return (
-          <Card key={cat.category} className={`overflow-hidden ${sizeClass}`}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-2xl">
-                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '💰'}
-                    </span>
-                    <h3 className={`font-semibold capitalize ${percentage >= 80 ? 'text-base' : 'text-sm'}`}>
-                      {cat.category}
-                    </h3>
-                  </div>
-                  <p className={`${fontSize} font-bold mt-2`}>
-                    {formatCurrency(cat.total, currencyCode)}
-                  </p>
-                </div>
-                <div className={`p-2 rounded-full ${
-                  isExpenseHeavy ? 'bg-danger/10' : 'bg-success/10'
-                }`}>
-                  {isExpenseHeavy ? (
-                    <TrendingDown className="w-4 h-4 text-danger" />
-                  ) : (
-                    <TrendingUp className="w-4 h-4 text-success" />
-                  )}
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
-                <div
-                  className={`absolute top-0 left-0 h-full rounded-full transition-all ${
-                    isExpenseHeavy ? 'bg-danger' : 'bg-success'
-                  }`}
-                  style={{ width: `${percentage}%` }}
-                />
-              </div>
-
-              {/* Income/Expense breakdown */}
-              <div className="flex justify-between text-xs text-muted-foreground">
-                {cat.income > 0 && (
-                  <div>
-                    <span className="text-success">↑ </span>
-                    {formatCurrency(cat.income, currencyCode)}
-                  </div>
-                )}
-                {cat.expense > 0 && (
-                  <div>
-                    <span className="text-danger">↓ </span>
-                    {formatCurrency(cat.expense, currencyCode)}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+    <div className="h-[420px]">
+      <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
     </div>
   );
 }
