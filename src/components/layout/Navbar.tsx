@@ -26,9 +26,9 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
           </button>
           <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-white shadow-sm">
-              F
+              Y
             </span>
-            <span className="hidden sm:inline">Frong Finance</span>
+            <span className="hidden sm:inline">Your Finance Assistant</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -45,7 +45,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
               <SignedIn>                <UserButton afterSignOutUrl="/" />
               </SignedIn>
               <SignedOut>
-                <SignInButton>
+                <SignInButton mode="redirect" forceRedirectUrl="/dashboard">
                   <Button variant="soft" size="sm">
                     Sign in
                   </Button>

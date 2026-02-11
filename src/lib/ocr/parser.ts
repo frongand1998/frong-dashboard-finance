@@ -31,6 +31,7 @@ export function parsePaymentSlipText(text: string): ParsedSlipData {
   };
 
   // Extract amount (จำนวนเงิน)
+  // Prioritize patterns with explicit amount keywords to avoid matching Biller IDs
   const amountPatterns = [
     /จำนวนเงิน[:\s]+([\d,]+(?:[.,]\d{2})?)/i,
     /จ[าำ]นวนเง[ิี]น[:\s]+([\d,]+(?:[.,]\d{2})?)/i, // Handle OCR errors
@@ -38,10 +39,8 @@ export function parsePaymentSlipText(text: string): ParsedSlipData {
     /total[:\s]+([\d,]+(?:[.,]\d{2})?)/i,
     /ยอดเงิน[:\s]+([\d,]+(?:[.,]\d{2})?)/i,
     /เง[ิี]น[:\s]+([\d,]+(?:[.,]\d{2})?)/i,
-    /(\d{1,3}(?:,\d{3})+(?:\.\d{2})?)\s*(?:บาท|baht)?/i, // 1,600.00
-    /(\d{4,})(?:\.\d{2})?\s*(?:บาท|baht)?/i, // 12000 or 12000.00
+    /(\d{1,3}(?:,\d{3})+(?:\.\d{2})?)\s*(?:บาท|baht)/i, // 1,600.00 บาท
     /(\d+\.\d{2})\s*(?:บาท|baht)/i, // Amount followed by currency
-    /^[\s\S]*?(\d+\.\d{2})[\s\S]*$/m, // Last resort: any number with 2 decimals
   ];
 
   for (const pattern of amountPatterns) {
@@ -59,26 +58,28 @@ export function parsePaymentSlipText(text: string): ParsedSlipData {
         normalizedAmount = digitsOnly.length >= 4 ? digitsOnly : rawAmount.replace(',', '.');
       }
 
-      result.amount = parseFloat(normalizedAmount);
-      console.log('Amount extracted:', result.amount, 'from:', match[0]);
-      break;
+      const parsedAmount = parseFloat(normalizedAmount);
+      // Filter out unreasonable amounts (too large = likely Biller ID/phone number)
+      if (parsedAmount > 0 && parsedAmount < 10000000) {
+        result.amount = parsedAmount;
+        console.log('Amount extracted:', result.amount, 'from:', match[0]);
+        break;
+      }
     }
   }
 
-  // If OCR dropped digits (e.g., "12" instead of "12000"), find the largest amount-like number in text
-  if (result.amount !== undefined && result.amount < 100) {
-    const amountCandidates = text.match(/\d{1,3}(?:,\d{3})+(?:\.\d{2})?|\d{4,}(?:\.\d{2})?/g) || [];
-    const parsedCandidates = amountCandidates
-      .map((value) => {
-        const normalized = value.replace(/,/g, '');
-        return parseFloat(normalized);
-      })
-      .filter((value) => !Number.isNaN(value));
-
-    if (parsedCandidates.length > 0) {
-      const maxCandidate = Math.max(...parsedCandidates);
-      if (maxCandidate > result.amount) {
-        result.amount = maxCandidate;
+  // Fallback: look for standalone reasonable amounts if not found yet
+  if (!result.amount) {
+    // Look for numbers with 2 decimals that are NOT part of IDs (avoid 10+ digit numbers)
+    const fallbackMatches = text.match(/(?<!\d)(\d{1,6}\.\d{2})(?!\d)/g);
+    if (fallbackMatches) {
+      for (const match of fallbackMatches) {
+        const parsedAmount = parseFloat(match);
+        if (parsedAmount > 0 && parsedAmount < 10000000) {
+          result.amount = parsedAmount;
+          console.log('Amount extracted (fallback):', result.amount);
+          break;
+        }
       }
     }
   }

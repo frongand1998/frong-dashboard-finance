@@ -187,12 +187,12 @@ export default function TransactionsPage() {
               View and manage all your income and expenses
             </p>
           </div>
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-end">
             {transactions.length > 0 && (
               <Button
                 variant="ghost"
                 onClick={handleExportCSV}
-                className="text-accent hover:bg-accent/10"
+                className="text-accent hover:bg-accent/10 w-full sm:w-auto justify-center"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Export CSV
@@ -202,14 +202,14 @@ export default function TransactionsPage() {
               <Button
                 variant="ghost"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="text-danger hover:bg-danger/10"
+                className="text-danger hover:bg-danger/10 w-full sm:w-auto justify-center"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete All
               </Button>
             )}
             <Link href="/add">
-              <Button variant="primary">Add Transaction</Button>
+              <Button variant="primary" className="w-full sm:w-auto justify-center">Add Transaction</Button>
             </Link>
           </div>
         </div>
@@ -284,8 +284,8 @@ export default function TransactionsPage() {
             </div>
 
             {/* Date Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+              <div className="min-w-0">
                 <label htmlFor="startDate" className="block text-sm font-medium mb-2">
                   Start Date
                 </label>
@@ -297,7 +297,7 @@ export default function TransactionsPage() {
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
-              <div className="flex-1">
+              <div className="min-w-0">
                 <label htmlFor="endDate" className="block text-sm font-medium mb-2">
                   End Date
                 </label>
@@ -310,11 +310,11 @@ export default function TransactionsPage() {
                 />
               </div>
               {(startDate || endDate) && (
-                <div className="flex items-end">
+                <div className="sm:justify-self-end">
                   <Button
                     variant="ghost"
                     onClick={handleClearFilters}
-                    className="whitespace-nowrap"
+                    className="w-full sm:w-auto whitespace-nowrap"
                   >
                     Clear Filters
                   </Button>

@@ -21,14 +21,14 @@ export default function TermsPage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">1. Acceptance of Terms</h2>
               <p className="text-muted-foreground">
-                By accessing and using Frong Finance, you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.
+                By accessing and using Your Finance Assistant, you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold mb-3">2. Description of Service</h2>
               <p className="text-muted-foreground">
-                Frong Finance is a personal finance management application that allows users to track income and expenses, scan payment slips using OCR technology, set financial goals, and export transaction data.
+                Your Finance Assistant is a personal finance management application that allows users to track income and expenses, scan payment slips using OCR technology, set financial goals, and export transaction data.
               </p>
             </section>
 
@@ -73,7 +73,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">7. Intellectual Property</h2>
               <p className="text-muted-foreground">
-                The Frong Finance service, including its design, code, and content, is protected by copyright and other intellectual property laws. You retain ownership of your financial data.
+                The Your Finance Assistant service, including its design, code, and content, is protected by copyright and other intellectual property laws. You retain ownership of your financial data.
               </p>
             </section>
 
@@ -87,7 +87,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">9. Limitation of Liability</h2>
               <p className="text-muted-foreground">
-                Frong Finance is provided "as is" without warranties. We are not liable for any damages arising from your use of the service, including but not limited to financial losses based on data inaccuracies.
+                Your Finance Assistant is provided "as is" without warranties. We are not liable for any damages arising from your use of the service, including but not limited to financial losses based on data inaccuracies.
               </p>
             </section>
 

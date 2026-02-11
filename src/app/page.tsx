@@ -12,7 +12,7 @@ export default async function HomePage() {
   
   // If user is signed in, redirect to dashboard
   if (userId) {
-    redirect("/transactions");
+    redirect("/dashboard");
   }
   
   return (
@@ -21,12 +21,12 @@ export default async function HomePage() {
       <div className="container mx-auto px-4 py-16 sm:py-24">
         <div className="flex flex-col items-center text-center space-y-8">
           <div className="inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-accent/80 text-3xl font-bold text-white shadow-2xl">
-            F
+            Y
           </div>
           
           <div className="space-y-4 max-w-3xl">
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-foreground tracking-tight">
-              Frong Finance
+              Your Finance Assistant
             </h1>
             <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Your smart personal finance companion. Track expenses, scan payment slips, and achieve your financial goals.

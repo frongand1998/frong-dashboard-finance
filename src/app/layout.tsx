@@ -15,25 +15,25 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Frong Finance - Smart Personal Finance Management",
-    template: "%s | Frong Finance"
+    default: "Your Finance Assistant - Smart Personal Finance Management",
+    template: "%s | Your Finance Assistant"
   },
   description: "Track expenses, scan Thai payment slips with OCR, set financial goals, and manage your money smarter. Free personal finance app with multi-currency support.",
   keywords: ["personal finance", "expense tracker", "budget app", "payment slip OCR", "Thai banking", "financial goals", "money management", "expense management", "budget planner"],
-  authors: [{ name: "Frong Finance" }],
-  creator: "Frong Finance",
-  publisher: "Frong Finance",
+  authors: [{ name: "Your Finance Assistant" }],
+  creator: "Your Finance Assistant",
+  publisher: "Your Finance Assistant",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://frong-finance.vercel.app",
-    title: "Frong Finance - Smart Personal Finance Management",
+    title: "Your Finance Assistant - Smart Personal Finance Management",
     description: "Track expenses, scan Thai payment slips with OCR, and achieve your financial goals. Free personal finance app.",
-    siteName: "Frong Finance",
+    siteName: "Your Finance Assistant",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Frong Finance - Smart Personal Finance Management",
+    title: "Your Finance Assistant - Smart Personal Finance Management",
     description: "Track expenses, scan payment slips, and manage your money smarter. 100% free.",
     creator: "@frongfinance",
   },

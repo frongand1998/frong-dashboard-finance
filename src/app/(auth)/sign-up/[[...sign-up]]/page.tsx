@@ -19,9 +19,9 @@ export default function SignUpPage() {
     <div className="flex min-h-screen items-center justify-center bg-surface">
       <SignUp 
         appearance={{ elements: { formButtonPrimary: "bg-accent" } }}
-        afterSignInUrl="/"
-        afterSignUpUrl="/"
-        redirectUrl="/"
+        afterSignInUrl="/dashboard"
+        afterSignUpUrl="/dashboard"
+        redirectUrl="/dashboard"
       />
     </div>
   );

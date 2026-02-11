@@ -1,4 +1,4 @@
-## Frong Finance Dashboard
+## Your Finance Assistant
 
 > 🎯 Smart personal finance management with payment slip OCR, multi-currency support, and goal tracking.
 

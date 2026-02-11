@@ -277,7 +277,7 @@ export default function AddRecordPage() {
 
   return (
     <PageShell>
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-2xl w-full space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Add Transaction</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -310,7 +310,7 @@ export default function AddRecordPage() {
                 <p className="text-sm text-muted-foreground">
                   Do you want to create a new transaction anyway?
                 </p>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     variant="ghost"
                     onClick={handleCancelDuplicate}
@@ -392,7 +392,7 @@ export default function AddRecordPage() {
               </p>
             )}
             {ocrUsage && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
                 <Info className="w-4 h-4" />
                 <span>
                   OCR Scans: {ocrUsage.remaining} of {ocrUsage.limit} remaining this month
@@ -405,7 +405,7 @@ export default function AddRecordPage() {
               {/* Type Selection */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Type</label>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
@@ -543,7 +543,7 @@ export default function AddRecordPage() {
                 {/* Extracted Transactions Summary */}
                 {extractedTransactions.length > 0 && (
                   <div className="bg-accent/10 rounded-lg p-4 space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <h4 className="text-sm font-medium">
                         ✅ {extractedTransactions.length} Transaction{extractedTransactions.length > 1 ? 's' : ''} Extracted
                       </h4>
@@ -602,7 +602,7 @@ export default function AddRecordPage() {
               )}
 
               {/* Submit Buttons */}
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   type="submit"
                   variant="primary"
@@ -616,6 +616,7 @@ export default function AddRecordPage() {
                   variant="ghost"
                   onClick={() => router.back()}
                   disabled={isSubmitting || isProcessing}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>

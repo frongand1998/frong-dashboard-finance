@@ -21,7 +21,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">1. Introduction</h2>
               <p className="text-muted-foreground">
-                Frong Finance ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your personal information.
+                Your Finance Assistant ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your personal information.
               </p>
             </section>
 
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">3. How We Use Your Information</h2>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                <li>Provide and maintain the Frong Finance service</li>
+                <li>Provide and maintain the Your Finance Assistant service</li>
                 <li>Process your transactions and financial data</li>
                 <li>Track OCR usage limits</li>
                 <li>Improve our service and develop new features</li>
