@@ -26,11 +26,12 @@ async function getUserLimit(): Promise<number> {
     .from('ocr_limits')
     .select('max_monthly')
     .eq('email', email)
-    .single();
+    .maybeSingle();
 
-  if (error || !data?.max_monthly) return OCR_MONTHLY_LIMIT;
+  if (error || !data) return OCR_MONTHLY_LIMIT;
 
-  return data.max_monthly > OCR_MONTHLY_LIMIT ? data.max_monthly : OCR_MONTHLY_LIMIT;
+  const maxMonthly = (data as { max_monthly: number }).max_monthly;
+  return maxMonthly > OCR_MONTHLY_LIMIT ? maxMonthly : OCR_MONTHLY_LIMIT;
 }
 
 /**
