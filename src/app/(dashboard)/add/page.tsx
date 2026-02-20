@@ -233,6 +233,12 @@ export default function AddRecordPage() {
     setExtractedTransactions((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleUpdateExtractedTransaction = (index: number, field: string, value: string) => {
+    setExtractedTransactions((prev) =>
+      prev.map((tx, i) => (i === index ? { ...tx, [field]: value } : tx))
+    );
+  };
+
   const handleCancelDuplicate = async () => {
     // User cancelled - remove image
     setPayslipImages([]);
@@ -557,28 +563,54 @@ export default function AddRecordPage() {
                         {isSubmitting ? 'Creating...' : `Create All ${extractedTransactions.length}`}
                       </Button>
                     </div>
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
                       {extractedTransactions.map((tx, idx) => (
-                        <div key={idx} className="bg-white rounded p-2 text-xs flex justify-between items-center gap-2">
-                          <div className="flex-1 min-w-0">
-                            <span className="font-medium">#{idx + 1}</span>
-                            {tx.merchant && <span className="ml-2 truncate">{tx.merchant}</span>}
-                            {tx.amount && <span className="ml-2 text-accent font-bold">฿{tx.amount}</span>}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground whitespace-nowrap">
-                              {tx.date || 'No date'}
-                            </span>
+                        <div key={idx} className="bg-white rounded-lg p-3 text-xs space-y-2 border border-border">
+                          {/* Header row */}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="font-semibold text-muted-foreground">#{idx + 1}</span>
+                              {tx.merchant && <span className="font-medium truncate">{tx.merchant}</span>}
+                              {tx.amount && <span className="text-accent font-bold whitespace-nowrap">฿{tx.amount}</span>}
+                            </div>
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
                               onClick={() => handleRemoveExtractedTransaction(idx)}
-                              className="h-7 w-7 p-0 text-danger hover:bg-danger/10"
+                              className="h-7 w-7 p-0 text-danger hover:bg-danger/10 shrink-0"
                               aria-label={`Remove transaction ${idx + 1}`}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
+                          </div>
+                          {/* Editable fields */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <label className="text-muted-foreground font-medium">Date</label>
+                              <input
+                                type="date"
+                                value={tx.date || ''}
+                                onChange={(e) => handleUpdateExtractedTransaction(idx, 'date', e.target.value)}
+                                className="w-full rounded border border-border bg-white px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-muted-foreground font-medium">Category</label>
+                              <input
+                                type="text"
+                                list={`category-extracted-${idx}`}
+                                value={tx.category || ''}
+                                onChange={(e) => handleUpdateExtractedTransaction(idx, 'category', e.target.value)}
+                                placeholder="Category"
+                                className="w-full rounded border border-border bg-white px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                              />
+                              <datalist id={`category-extracted-${idx}`}>
+                                {categories.map((cat) => (
+                                  <option key={cat} value={cat} />
+                                ))}
+                              </datalist>
+                            </div>
                           </div>
                         </div>
                       ))}

@@ -1,45 +1,69 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState, useMemo, useTransition, useRef } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { PageShell } from '@/components/layout/PageShell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Download, Search } from 'lucide-react';
+import { Trash2, Download, Search, X } from 'lucide-react';
 import { getTransactions, deleteAllTransactions, deleteTransaction } from '@/server-actions/transactions';
+import { getCategories } from '@/server-actions/categories';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import type { Transaction } from '@/types';
 
+type TypeFilter = 'all' | 'income' | 'expense';
+
 export default function TransactionsPage() {
   const { currency } = useCurrency();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [, startTransition] = useTransition();
+
+  // — URL is the source of truth for all filters —
+  const searchTerm = searchParams.get('q') ?? '';
+  const startDate = searchParams.get('startDate') ?? '';
+  const endDate = searchParams.get('endDate') ?? '';
+  const typeFilter = (searchParams.get('type') ?? 'all') as TypeFilter;
+  const categoryFilter = searchParams.get('category') ?? '';
+
+  // Local input value so the text field feels instant; URL is updated with debounce
+  const [inputValue, setInputValue] = useState(searchTerm);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Sync local input if URL param changes externally (e.g. back/forward)
+  useEffect(() => {
+    setInputValue(searchParams.get('q') ?? '');
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         setLoading(true);
-        const result = await getTransactions(200, 0);
-        if (result.success) {
-          const data = result.data || [];
-          setAllTransactions(data);
-          setTransactions(data);
+        const [txResult, catResult] = await Promise.all([
+          getTransactions(1000, 0),
+          getCategories(),
+        ]);
+        if (txResult.success) {
+          setAllTransactions(txResult.data || []);
         } else {
-          setError(result.error || 'Failed to load transactions');
+          setError(txResult.error || 'Failed to load transactions');
         }
-      } catch (err) {
+        if (catResult.success) {
+          setCategories(catResult.data || []);
+        }
+      } catch {
         setError('An unexpected error occurred');
       } finally {
         setLoading(false);
@@ -49,51 +73,106 @@ export default function TransactionsPage() {
     fetchTransactions();
   }, []);
 
-  useEffect(() => {
-    const categoryParam = searchParams.get('category');
-    const startParam = searchParams.get('startDate');
-    const endParam = searchParams.get('endDate');
-
-    if (categoryParam) {
-      setSearchTerm(categoryParam);
-    }
-    if (startParam) {
-      setStartDate(startParam);
-    }
-    if (endParam) {
-      setEndDate(endParam);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    let filtered = [...allTransactions];
+  // Derive filtered list with useMemo — no duplicate state
+  const transactions = useMemo(() => {
+    let filtered = allTransactions;
 
     if (startDate) {
       filtered = filtered.filter(tx => tx.date >= startDate);
     }
-
     if (endDate) {
       filtered = filtered.filter(tx => tx.date <= endDate);
     }
-
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(tx => tx.type === typeFilter);
+    }
+    if (categoryFilter) {
+      filtered = filtered.filter(tx => tx.category === categoryFilter);
+    }
     if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(tx => 
-        tx.category.toLowerCase().includes(search) ||
-        tx.note?.toLowerCase().includes(search) ||
-        tx.amount.toString().includes(search) ||
-        tx.type.toLowerCase().includes(search)
+      const q = searchTerm.toLowerCase();
+      filtered = filtered.filter(tx =>
+        tx.category.toLowerCase().includes(q) ||
+        tx.note?.toLowerCase().includes(q) ||
+        tx.amount.toString().includes(q)
       );
     }
 
-    setTransactions(filtered);
-  }, [startDate, endDate, searchTerm, allTransactions]);
+    return filtered;
+  }, [allTransactions, startDate, endDate, typeFilter, categoryFilter, searchTerm]);
+
+  // Helpers to update individual URL params without losing others
+  const setParam = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    startTransition(() => {
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    });
+  };
+
+  const handleSearchChange = (value: string) => {
+    setInputValue(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setParam('q', value), 500);
+  };
 
   const handleClearFilters = () => {
-    setStartDate('');
-    setEndDate('');
-    setSearchTerm('');
+    setInputValue('');
+    startTransition(() => {
+      router.replace(pathname, { scroll: false });
+    });
   };
+
+  const hasActiveFilters = !!(searchTerm || startDate || endDate || typeFilter !== 'all' || categoryFilter);
+
+  const setDateRange = (start: string, end: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (start) params.set('startDate', start); else params.delete('startDate');
+    if (end) params.set('endDate', end); else params.delete('endDate');
+    startTransition(() => {
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    });
+  };
+
+  const today = new Date();
+  const fmt = (d: Date) => d.toISOString().split('T')[0];
+
+  const quickRanges = [
+    {
+      label: 'Today',
+      start: fmt(today),
+      end: fmt(today),
+    },
+    {
+      label: 'This Week',
+      start: fmt(new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay())),
+      end: fmt(today),
+    },
+    {
+      label: 'This Month',
+      start: fmt(new Date(today.getFullYear(), today.getMonth(), 1)),
+      end: fmt(today),
+    },
+    {
+      label: 'This Year',
+      start: fmt(new Date(today.getFullYear(), 0, 1)),
+      end: fmt(today),
+    },
+    {
+      label: 'Last Month',
+      start: fmt(new Date(today.getFullYear(), today.getMonth() - 1, 1)),
+      end: fmt(new Date(today.getFullYear(), today.getMonth(), 0)),
+    },
+    {
+      label: 'Last Year',
+      start: fmt(new Date(today.getFullYear() - 1, 0, 1)),
+      end: fmt(new Date(today.getFullYear() - 1, 11, 31)),
+    },
+  ];
 
   const handleExportCSV = () => {
     // Create CSV header
@@ -142,12 +221,11 @@ export default function TransactionsPage() {
       
       if (result.success) {
         setAllTransactions([]);
-        setTransactions([]);
         setShowDeleteConfirm(false);
       } else {
         setError(result.error || 'Failed to delete transactions');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setIsDeleting(false);
@@ -165,11 +243,10 @@ export default function TransactionsPage() {
       const result = await deleteTransaction(id);
       if (result.success) {
         setAllTransactions((prev) => prev.filter((tx) => tx.id !== id));
-        setTransactions((prev) => prev.filter((tx) => tx.id !== id));
       } else {
         setError(result.error || 'Failed to delete transaction');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setDeletingId(null);
@@ -262,29 +339,91 @@ export default function TransactionsPage() {
         {/* Search and Filters */}
         <Card>
           <CardHeader>
-            <CardTitle>Search & Filters</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Search & Filters</CardTitle>
+              {hasActiveFilters && (
+                <Button variant="ghost" onClick={handleClearFilters} className="text-xs h-8 gap-1.5">
+                  <X className="w-3 h-3" />
+                  Clear all
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Search Bar */}
-            <div>
-              <label htmlFor="search" className="block text-sm font-medium mb-2">
-                Search
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  id="search"
-                  type="text"
-                  placeholder="Search by category, note, amount, or type..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-white pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                id="search"
+                type="search"
+                autoComplete="off"
+                placeholder="Search by category, note or amount…"
+                value={inputValue}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full rounded-lg border border-border bg-white pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              />
             </div>
 
-            {/* Date Filters */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            {/* Quick Date Ranges */}
+            <div className="flex flex-wrap gap-2">
+              {quickRanges.map((r) => {
+                const active = startDate === r.start && endDate === r.end;
+                return (
+                  <button
+                    key={r.label}
+                    type="button"
+                    onClick={() => active ? setDateRange('', '') : setDateRange(r.start, r.end)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      active
+                        ? 'bg-accent text-white border-accent'
+                        : 'bg-white text-muted-foreground border-border hover:border-accent hover:text-accent'
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Type + Date Filters */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[auto_1fr_1fr_1fr] sm:items-end">
+              {/* Type toggle */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Type</label>
+                <div className="inline-flex rounded-lg border border-border overflow-hidden">
+                  {(['all', 'income', 'expense'] as TypeFilter[]).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setParam('type', t === 'all' ? '' : t)}
+                      className={`px-3 py-2 text-sm capitalize transition-colors ${
+                        typeFilter === t
+                          ? 'bg-accent text-white font-medium'
+                          : 'bg-white text-muted-foreground hover:bg-muted/50'
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Category select */}
+              <div className="min-w-0">
+                <label htmlFor="categoryFilter" className="block text-sm font-medium mb-2">Category</label>
+                <select
+                  id="categoryFilter"
+                  value={categoryFilter}
+                  onChange={(e) => setParam('category', e.target.value)}
+                  className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                >
+                  <option value="">All categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
               <div className="min-w-0">
                 <label htmlFor="startDate" className="block text-sm font-medium mb-2">
                   Start Date
@@ -293,7 +432,7 @@ export default function TransactionsPage() {
                   id="startDate"
                   type="date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={(e) => setParam('startDate', e.target.value)}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
@@ -305,25 +444,15 @@ export default function TransactionsPage() {
                   id="endDate"
                   type="date"
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  onChange={(e) => setParam('endDate', e.target.value)}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
-              {(startDate || endDate) && (
-                <div className="sm:justify-self-end">
-                  <Button
-                    variant="ghost"
-                    onClick={handleClearFilters}
-                    className="w-full sm:w-auto whitespace-nowrap"
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
-              )}
             </div>
+
             {allTransactions.length > 0 && (
-              <p className="text-sm text-muted-foreground mt-4">
-                Showing {transactions.length} of {allTransactions.length} transactions
+              <p className="text-sm text-muted-foreground">
+                Showing <span className="font-medium text-foreground">{transactions.length}</span> of {allTransactions.length} transactions
               </p>
             )}
           </CardContent>
@@ -406,7 +535,7 @@ export default function TransactionsPage() {
 
                 {/* Desktop Table View */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full min-w-[600px]">
+                  <table className="w-full min-w-150">
                     <thead>
                       <tr className="text-sm text-muted-foreground bg-muted/30">
                         <th className="text-left py-3 px-4 font-medium whitespace-nowrap">Date</th>

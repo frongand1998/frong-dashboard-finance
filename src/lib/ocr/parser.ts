@@ -85,39 +85,54 @@ export function parsePaymentSlipText(text: string): ParsedSlipData {
   }
 
   // Extract date
-  const datePatterns = [
+  // Map covers full abbreviations, abbreviated without dots, and full Thai month names
+  const thaiMonthMap: { [key: string]: number } = {
+    // Abbreviated with dots (standard)
+    'ม.ค.': 1, 'ก.พ.': 2, 'มี.ค.': 3, 'เม.ย.': 4,
+    'พ.ค.': 5, 'มิ.ย.': 6, 'ก.ค.': 7, 'ส.ค.': 8,
+    'ก.ย.': 9, 'ต.ค.': 10, 'พ.ย.': 11, 'ธ.ค.': 12,
+    // Without trailing dot (OCR sometimes drops it)
+    'ม.ค': 1, 'ก.พ': 2, 'มี.ค': 3, 'เม.ย': 4,
+    'พ.ค': 5, 'มิ.ย': 6, 'ก.ค': 7, 'ส.ค': 8,
+    'ก.ย': 9, 'ต.ค': 10, 'พ.ย': 11, 'ธ.ค': 12,
+    // Full Thai month names
+    'มกราคม': 1, 'กุมภาพันธ์': 2, 'มีนาคม': 3, 'เมษายน': 4,
+    'พฤษภาคม': 5, 'มิถุนายน': 6, 'กรกฎาคม': 7, 'สิงหาคม': 8,
+    'กันยายน': 9, 'ตุลาคม': 10, 'พฤศจิกายน': 11, 'ธันวาคม': 12,
+  };
+
+  // Build alternation from longest to shortest to avoid partial matches
+  const thaiMonthAlt = Object.keys(thaiMonthMap)
+    .sort((a, b) => b.length - a.length)
+    .map(k => k.replace(/\./g, '\\.'))
+    .join('|');
+
+  const datePatterns: RegExp[] = [
+    // Thai abbreviated/full month name: 24 ธ.ค. 2568
+    new RegExp(`(\\d{1,2})\\s+(${thaiMonthAlt})\\s+(\\d{4})`),
+    // Numeric: 24/12/2568 or 24.12.2568
     /(\d{1,2})\s*[./]\s*(\d{1,2})\s*[./]\s*(\d{4})/,
-    /(\d{1,2})\s+([ม|ก|มี|เม|พ|มิ|ส|ก|ต|พ|ธ])\.?[คยนยยคยวศตย]\.?\s+(\d{4})/,
   ];
 
   for (const pattern of datePatterns) {
     const match = text.match(pattern);
     if (match) {
-      let day = parseInt(match[1]);
-      let month = match[2];
+      const day = parseInt(match[1]);
+      const monthRaw = match[2];
       let year = parseInt(match[3]);
 
-      // Convert Buddhist year to Christian year
-      if (year > 2500) {
-        year = year - 543;
-      }
-
-      // Convert Thai month abbreviation to number
-      const thaiMonths: { [key: string]: number } = {
-        'ม.ค.': 1, 'ก.พ.': 2, 'มี.ค.': 3, 'เม.ย.': 4,
-        'พ.ค.': 5, 'มิ.ย.': 6, 'ก.ค.': 7, 'ส.ค.': 8,
-        'ก.ย.': 9, 'ต.ค.': 10, 'พ.ย.': 11, 'ธ.ค.': 12,
-      };
+      // Convert Buddhist Era → Common Era
+      if (year > 2500) year -= 543;
 
       let monthNum: number;
-      if (typeof month === 'string' && isNaN(parseInt(month))) {
-        monthNum = thaiMonths[month] || 1;
+      if (isNaN(parseInt(monthRaw))) {
+        monthNum = thaiMonthMap[monthRaw] ?? 1;
       } else {
-        monthNum = parseInt(month);
+        monthNum = parseInt(monthRaw);
       }
 
-      // Format as YYYY-MM-DD
       result.date = `${year}-${String(monthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      console.log('Date extracted:', result.date, 'from:', match[0], '| month raw:', monthRaw, '→', monthNum);
       break;
     }
   }
