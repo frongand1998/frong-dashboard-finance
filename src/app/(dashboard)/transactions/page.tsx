@@ -264,14 +264,14 @@ export default function TransactionsPage() {
               View and manage all your income and expenses
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-end">
+          <div className="flex flex-wrap gap-2 items-center justify-start sm:justify-end">
             {transactions.length > 0 && (
               <Button
                 variant="ghost"
                 onClick={handleExportCSV}
-                className="text-accent hover:bg-accent/10 w-full sm:w-auto justify-center"
+                className="text-accent hover:bg-accent/10"
               >
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="w-4 h-4 mr-1.5" />
                 Export CSV
               </Button>
             )}
@@ -279,14 +279,14 @@ export default function TransactionsPage() {
               <Button
                 variant="ghost"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="text-danger hover:bg-danger/10 w-full sm:w-auto justify-center"
+                className="text-danger hover:bg-danger/10"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="w-4 h-4 mr-1.5" />
                 Delete All
               </Button>
             )}
             <Link href="/add">
-              <Button variant="primary" className="w-full sm:w-auto justify-center">Add Transaction</Button>
+              <Button variant="primary">Add Transaction</Button>
             </Link>
           </div>
         </div>
@@ -386,7 +386,7 @@ export default function TransactionsPage() {
             </div>
 
             {/* Type + Date Filters */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[auto_1fr_1fr_1fr] sm:items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[auto_1fr_1fr_1fr] gap-4 items-end">
               {/* Type toggle */}
               <div>
                 <label className="block text-sm font-medium mb-2">Type</label>
@@ -535,7 +535,7 @@ export default function TransactionsPage() {
 
                 {/* Desktop Table View */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full min-w-150">
+                  <table className="w-full min-w-160">
                     <thead>
                       <tr className="text-sm text-muted-foreground bg-muted/30">
                         <th className="text-left py-3 px-4 font-medium whitespace-nowrap">Date</th>

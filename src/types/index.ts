@@ -29,3 +29,13 @@ export type Summary = {
   expenses: number;
   net: number;
 };
+
+export type Budget = {
+  id: string;
+  user_id: string;
+  category: string;
+  limit_amount: number;
+  month: string; // YYYY-MM
+  created_at?: string;
+  updated_at?: string;
+};
