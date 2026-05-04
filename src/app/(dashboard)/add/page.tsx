@@ -827,6 +827,77 @@ export default function AddRecordPage() {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr className="bg-muted/40 border-t-2 border-border font-semibold text-sm">
+                      <td
+                        className="py-2 pr-4 text-muted-foreground whitespace-nowrap"
+                        colSpan={3}
+                      >
+                        Total ({historyTransactions.length} transaction
+                        {historyTransactions.length !== 1 ? "s" : ""})
+                      </td>
+                      <td className="py-2 pr-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-success text-xs">
+                            +
+                            {formatCurrency(
+                              historyTransactions
+                                .filter((tx) => tx.type === "income")
+                                .reduce((sum, tx) => sum + tx.amount, 0),
+                              currency.code,
+                            )}
+                          </span>
+                          <span className="text-danger text-xs">
+                            -
+                            {formatCurrency(
+                              historyTransactions
+                                .filter((tx) => tx.type === "expense")
+                                .reduce((sum, tx) => sum + tx.amount, 0),
+                              currency.code,
+                            )}
+                          </span>
+                          <span
+                            className={`text-sm ${
+                              historyTransactions.reduce(
+                                (sum, tx) =>
+                                  sum +
+                                  (tx.type === "income"
+                                    ? tx.amount
+                                    : -tx.amount),
+                                0,
+                              ) >= 0
+                                ? "text-success"
+                                : "text-danger"
+                            }`}
+                          >
+                            Net:{" "}
+                            {historyTransactions.reduce(
+                              (sum, tx) =>
+                                sum +
+                                (tx.type === "income" ? tx.amount : -tx.amount),
+                              0,
+                            ) >= 0
+                              ? "+"
+                              : "-"}
+                            {formatCurrency(
+                              Math.abs(
+                                historyTransactions.reduce(
+                                  (sum, tx) =>
+                                    sum +
+                                    (tx.type === "income"
+                                      ? tx.amount
+                                      : -tx.amount),
+                                  0,
+                                ),
+                              ),
+                              currency.code,
+                            )}
+                          </span>
+                        </div>
+                      </td>
+                      <td colSpan={2} />
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             )}
