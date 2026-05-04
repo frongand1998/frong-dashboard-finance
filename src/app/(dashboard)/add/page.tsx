@@ -1,34 +1,53 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { PageShell } from '@/components/layout/PageShell';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ImageUpload } from '@/components/transaction/ImageUpload';
-import { AlertTriangle, Info, Trash2 } from 'lucide-react';
-import { createTransaction, getTransactions } from '@/server-actions/transactions';
-import { getCategories } from '@/server-actions/categories';
-import { getOcrUsage, recordOcrUsage } from '@/server-actions/ocr-usage';
-import { transactionSchema, type TransactionFormData } from '@/lib/validators/transaction';
-import { performOCR, type OcrUsageInfo } from '@/lib/ocr/parser';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { PageShell } from "@/components/layout/PageShell";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/transaction/ImageUpload";
+import { AlertTriangle, Info, Trash2 } from "lucide-react";
+import {
+  createTransaction,
+  getTransactions,
+} from "@/server-actions/transactions";
+import { getCategories } from "@/server-actions/categories";
+import { getOcrUsage, recordOcrUsage } from "@/server-actions/ocr-usage";
+import {
+  transactionSchema,
+  type TransactionFormData,
+} from "@/lib/validators/transaction";
+import { performOCR, type OcrUsageInfo } from "@/lib/ocr/parser";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import type { Transaction } from "@/types";
 
 export default function AddRecordPage() {
   const router = useRouter();
+  const { currency } = useCurrency();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [payslipImages, setPayslipImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingProgress, setProcessingProgress] = useState({ current: 0, total: 0 });
+  const [processingProgress, setProcessingProgress] = useState({
+    current: 0,
+    total: 0,
+  });
   const [ocrSuccess, setOcrSuccess] = useState(false);
   const [extractedTransactions, setExtractedTransactions] = useState<any[]>([]);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
-  const [duplicateInfo, setDuplicateInfo] = useState<{ reference: string; date: string } | null>(null);
+  const [duplicateInfo, setDuplicateInfo] = useState<{
+    reference: string;
+    date: string;
+  } | null>(null);
   const [pendingExtractedData, setPendingExtractedData] = useState<any>(null);
   const [ocrUsage, setOcrUsage] = useState<OcrUsageInfo | null>(null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
@@ -38,38 +57,57 @@ export default function AddRecordPage() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
-      type: 'expense',
-      date: new Date().toISOString().split('T')[0],
+      type: "expense",
+      date: new Date().toISOString().split("T")[0],
     },
   });
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      const result = await getCategories();
-      if (result.success) {
-        setCategories(result.data);
-      }
-    };
-    fetchCategories();
+    const fetchInitialData = async () => {
+      setHistoryLoading(true);
 
-    // Fetch OCR usage info
-    const fetchOcrUsage = async () => {
-      const result = await getOcrUsage();
-      if (result.success && result.data) {
-        setOcrUsage(result.data);
+      const [categoriesResult, ocrResult, transactionsResult] =
+        await Promise.all([
+          getCategories(),
+          getOcrUsage(),
+          getTransactions(500, 0),
+        ]);
+
+      if (categoriesResult.success) {
+        setCategories(categoriesResult.data);
       }
+
+      if (ocrResult.success && ocrResult.data) {
+        setOcrUsage(ocrResult.data);
+      }
+
+      if (transactionsResult.success) {
+        setAllTransactions(transactionsResult.data || []);
+      }
+
+      setHistoryLoading(false);
     };
-    fetchOcrUsage();
+
+    fetchInitialData();
   }, []);
+
+  const selectedDate = watch("date");
+  const selectedMonth = selectedDate ? selectedDate.slice(0, 7) : "";
+  const historyTransactions = allTransactions
+    .filter((tx) => tx.date.slice(0, 7) === selectedMonth)
+    .slice(0, 10);
 
   const handleImagesSelect = async (files: File[]) => {
     // Check if user has enough OCR scans
     if (ocrUsage && files.length > ocrUsage.remaining) {
-      alert(`You only have ${ocrUsage.remaining} OCR scans remaining. Please upload ${ocrUsage.remaining} or fewer images.`);
+      alert(
+        `You only have ${ocrUsage.remaining} OCR scans remaining. Please upload ${ocrUsage.remaining} or fewer images.`,
+      );
       return;
     }
 
@@ -109,13 +147,20 @@ export default function AddRecordPage() {
         // Record OCR usage
         const usageResult = await recordOcrUsage();
         if (!usageResult.success) {
-          console.error(`Failed to record usage for slip ${i + 1}:`, usageResult.error);
+          console.error(
+            `Failed to record usage for slip ${i + 1}:`,
+            usageResult.error,
+          );
           continue;
         }
 
         // Update OCR usage
-        if (ocrUsage && typeof usageResult.remainingScans === 'number') {
-          setOcrUsage({ ...ocrUsage, remaining: usageResult.remainingScans, used: ocrUsage.used + 1 });
+        if (ocrUsage && typeof usageResult.remainingScans === "number") {
+          setOcrUsage({
+            ...ocrUsage,
+            remaining: usageResult.remainingScans,
+            used: ocrUsage.used + 1,
+          });
         }
 
         // Perform OCR
@@ -125,12 +170,12 @@ export default function AddRecordPage() {
         if (extractedData.reference && extractedData.reference.trim()) {
           const txResult = await getTransactions(200, 0);
           if (txResult.success && txResult.data) {
-            const duplicate = txResult.data.find(tx => 
-              tx.note?.includes(extractedData.reference!)
+            const duplicate = txResult.data.find((tx) =>
+              tx.note?.includes(extractedData.reference!),
             );
-            
+
             if (duplicate) {
-              extractedData.note = (extractedData.note || '') + ' (Duplicate)';
+              extractedData.note = (extractedData.note || "") + " (Duplicate)";
             }
           }
         }
@@ -140,21 +185,21 @@ export default function AddRecordPage() {
 
       setExtractedTransactions(transactions);
       setOcrSuccess(true);
-      
+
       // Auto-fill form with first transaction
       if (transactions.length > 0) {
         const firstTx = transactions[0];
-        if (firstTx.amount) setValue('amount', firstTx.amount);
-        if (firstTx.date) setValue('date', firstTx.date);
-        if (firstTx.type) setValue('type', firstTx.type);
-        if (firstTx.category) setValue('category', firstTx.category);
-        if (firstTx.note) setValue('note', firstTx.note);
+        if (firstTx.amount) setValue("amount", firstTx.amount);
+        if (firstTx.date) setValue("date", firstTx.date);
+        if (firstTx.type) setValue("type", firstTx.type);
+        if (firstTx.category) setValue("category", firstTx.category);
+        if (firstTx.note) setValue("note", firstTx.note);
       }
 
       setTimeout(() => setOcrSuccess(false), 3000);
     } catch (err) {
-      console.error('Batch OCR failed:', err);
-      setError('Failed to process some slips. Check console for details.');
+      console.error("Batch OCR failed:", err);
+      setError("Failed to process some slips. Check console for details.");
     } finally {
       setIsProcessing(false);
       setProcessingProgress({ current: 0, total: 0 });
@@ -171,21 +216,22 @@ export default function AddRecordPage() {
 
     for (const txData of extractedTransactions) {
       try {
-        const amountValue = typeof txData.amount === 'number'
-          ? txData.amount
-          : Number(txData.amount);
+        const amountValue =
+          typeof txData.amount === "number"
+            ? txData.amount
+            : Number(txData.amount);
 
         if (!amountValue || Number.isNaN(amountValue) || amountValue <= 0) {
           failCount++;
-          failedReasons.push('Missing or invalid amount');
+          failedReasons.push("Missing or invalid amount");
           continue;
         }
 
         const normalizedData: TransactionFormData = {
-          type: txData.type || 'expense',
-          category: txData.category || 'Uncategorized',
+          type: txData.type || "expense",
+          category: txData.category || "Uncategorized",
           amount: amountValue,
-          date: txData.date || new Date().toISOString().split('T')[0],
+          date: txData.date || new Date().toISOString().split("T")[0],
           note: txData.note || undefined,
         };
 
@@ -194,31 +240,35 @@ export default function AddRecordPage() {
           successCount++;
         } else {
           failCount++;
-          failedReasons.push(result.error || 'Failed to create transaction');
+          failedReasons.push(result.error || "Failed to create transaction");
         }
       } catch (err) {
         failCount++;
-        failedReasons.push('Unexpected error while creating transaction');
+        failedReasons.push("Unexpected error while creating transaction");
       }
     }
 
     setIsSubmitting(false);
-    
+
     if (successCount > 0) {
       setSuccess(true);
-      reset();
+      const currentDate = selectedDate;
+      reset({ type: "expense", date: currentDate });
       setPayslipImages([]);
       setImagePreviews([]);
       setExtractedTransactions([]);
-      
-      alert(`✅ ${successCount} transactions created successfully!${failCount > 0 ? `\n⚠️ ${failCount} failed.` : ''}`);
-      
-      setTimeout(() => {
-        router.push('/transactions');
-      }, 1500);
+
+      alert(
+        `✅ ${successCount} transactions created successfully!${failCount > 0 ? `\n⚠️ ${failCount} failed.` : ""}`,
+      );
+
+      const transactionsResult = await getTransactions(500, 0);
+      if (transactionsResult.success) {
+        setAllTransactions(transactionsResult.data || []);
+      }
     } else {
       const uniqueReasons = Array.from(new Set(failedReasons));
-      setError(`Failed to create transactions. ${uniqueReasons.join(' • ')}`);
+      setError(`Failed to create transactions. ${uniqueReasons.join(" • ")}`);
     }
   };
 
@@ -233,9 +283,13 @@ export default function AddRecordPage() {
     setExtractedTransactions((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpdateExtractedTransaction = (index: number, field: string, value: string) => {
+  const handleUpdateExtractedTransaction = (
+    index: number,
+    field: string,
+    value: string,
+  ) => {
     setExtractedTransactions((prev) =>
-      prev.map((tx, i) => (i === index ? { ...tx, [field]: value } : tx))
+      prev.map((tx, i) => (i === index ? { ...tx, [field]: value } : tx)),
     );
   };
 
@@ -246,7 +300,7 @@ export default function AddRecordPage() {
     setShowDuplicateWarning(false);
     setDuplicateInfo(null);
     setPendingExtractedData(null);
-    
+
     // Refresh OCR usage
     const result = await getOcrUsage();
     if (result.success && result.data) {
@@ -264,18 +318,19 @@ export default function AddRecordPage() {
 
       if (result.success) {
         setSuccess(true);
-        reset();
+        reset({ type: data.type, date: data.date });
         setPayslipImages([]);
         setImagePreviews([]);
-        
-        setTimeout(() => {
-          router.push('/transactions');
-        }, 1500);
+
+        const transactionsResult = await getTransactions(500, 0);
+        if (transactionsResult.success) {
+          setAllTransactions(transactionsResult.data || []);
+        }
       } else {
-        setError(result.error || 'Failed to create transaction');
+        setError(result.error || "Failed to create transaction");
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
     }
@@ -310,7 +365,8 @@ export default function AddRecordPage() {
                     <strong>Reference:</strong> {duplicateInfo.reference}
                   </p>
                   <p className="text-sm">
-                    <strong>Previous transaction date:</strong> {new Date(duplicateInfo.date).toLocaleDateString()}
+                    <strong>Previous transaction date:</strong>{" "}
+                    {new Date(duplicateInfo.date).toLocaleDateString()}
                   </p>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -362,11 +418,15 @@ export default function AddRecordPage() {
                     <strong>Used:</strong> {ocrUsage?.used} scans
                   </p>
                   <p className="text-sm">
-                    <strong>Resets on:</strong> {ocrUsage?.resetDate ? new Date(ocrUsage.resetDate).toLocaleDateString() : 'Next month'}
+                    <strong>Resets on:</strong>{" "}
+                    {ocrUsage?.resetDate
+                      ? new Date(ocrUsage.resetDate).toLocaleDateString()
+                      : "Next month"}
                   </p>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  You can still add transactions manually by filling out the form below.
+                  You can still add transactions manually by filling out the
+                  form below.
                 </p>
                 <Button
                   variant="primary"
@@ -398,10 +458,11 @@ export default function AddRecordPage() {
               </p>
             )}
             {ocrUsage && (
-                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
                 <Info className="w-4 h-4" />
                 <span>
-                  OCR Scans: {ocrUsage.remaining} of {ocrUsage.limit} remaining this month
+                  OCR Scans: {ocrUsage.remaining} of {ocrUsage.limit} remaining
+                  this month
                 </span>
               </div>
             )}
@@ -416,7 +477,7 @@ export default function AddRecordPage() {
                     <input
                       type="radio"
                       value="income"
-                      {...register('type')}
+                      {...register("type")}
                       className="w-4 h-4 text-accent"
                     />
                     <span className="text-sm">Income</span>
@@ -425,7 +486,7 @@ export default function AddRecordPage() {
                     <input
                       type="radio"
                       value="expense"
-                      {...register('type')}
+                      {...register("type")}
                       className="w-4 h-4 text-accent"
                     />
                     <span className="text-sm">Expense</span>
@@ -444,7 +505,7 @@ export default function AddRecordPage() {
                 <input
                   id="category"
                   type="text"
-                  {...register('category')}
+                  {...register("category")}
                   list="category-suggestions"
                   placeholder="e.g., Groceries, Salary, Utilities"
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
@@ -456,7 +517,9 @@ export default function AddRecordPage() {
                   ))}
                 </datalist>
                 {errors.category && (
-                  <p className="text-sm text-danger">{errors.category.message}</p>
+                  <p className="text-sm text-danger">
+                    {errors.category.message}
+                  </p>
                 )}
               </div>
 
@@ -469,7 +532,7 @@ export default function AddRecordPage() {
                   id="amount"
                   type="number"
                   step="0.01"
-                  {...register('amount', { valueAsNumber: true })}
+                  {...register("amount", { valueAsNumber: true })}
                   placeholder="0.00"
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 />
@@ -486,7 +549,7 @@ export default function AddRecordPage() {
                 <input
                   id="date"
                   type="date"
-                  {...register('date')}
+                  {...register("date")}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 />
                 {errors.date && (
@@ -501,7 +564,7 @@ export default function AddRecordPage() {
                 </label>
                 <textarea
                   id="note"
-                  {...register('note')}
+                  {...register("note")}
                   placeholder="Add any additional details..."
                   rows={3}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
@@ -519,21 +582,22 @@ export default function AddRecordPage() {
                   previews={imagePreviews}
                   maxFiles={10}
                 />
-                
+
                 {/* Batch Processing Controls */}
                 {imagePreviews.length > 0 && (
                   <div className="flex gap-3">
                     <Button
                       type="button"
                       onClick={handleProcessSlips}
-                      disabled={isProcessing || extractedTransactions.length > 0}
+                      disabled={
+                        isProcessing || extractedTransactions.length > 0
+                      }
                       variant="primary"
                       className="flex-1"
                     >
                       {isProcessing
                         ? `Processing ${processingProgress.current}/${processingProgress.total}...`
-                        : `Process ${imagePreviews.length} Slip${imagePreviews.length > 1 ? 's' : ''}`
-                      }
+                        : `Process ${imagePreviews.length} Slip${imagePreviews.length > 1 ? "s" : ""}`}
                     </Button>
                     <Button
                       type="button"
@@ -551,7 +615,8 @@ export default function AddRecordPage() {
                   <div className="bg-accent/10 rounded-lg p-4 space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <h4 className="text-sm font-medium">
-                        ✅ {extractedTransactions.length} Transaction{extractedTransactions.length > 1 ? 's' : ''} Extracted
+                        ✅ {extractedTransactions.length} Transaction
+                        {extractedTransactions.length > 1 ? "s" : ""} Extracted
                       </h4>
                       <Button
                         type="button"
@@ -560,24 +625,41 @@ export default function AddRecordPage() {
                         variant="primary"
                         size="sm"
                       >
-                        {isSubmitting ? 'Creating...' : `Create All ${extractedTransactions.length}`}
+                        {isSubmitting
+                          ? "Creating..."
+                          : `Create All ${extractedTransactions.length}`}
                       </Button>
                     </div>
                     <div className="space-y-2 max-h-96 overflow-y-auto">
                       {extractedTransactions.map((tx, idx) => (
-                        <div key={idx} className="bg-white rounded-lg p-3 text-xs space-y-2 border border-border">
+                        <div
+                          key={idx}
+                          className="bg-white rounded-lg p-3 text-xs space-y-2 border border-border"
+                        >
                           {/* Header row */}
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="font-semibold text-muted-foreground">#{idx + 1}</span>
-                              {tx.merchant && <span className="font-medium truncate">{tx.merchant}</span>}
-                              {tx.amount && <span className="text-accent font-bold whitespace-nowrap">฿{tx.amount}</span>}
+                              <span className="font-semibold text-muted-foreground">
+                                #{idx + 1}
+                              </span>
+                              {tx.merchant && (
+                                <span className="font-medium truncate">
+                                  {tx.merchant}
+                                </span>
+                              )}
+                              {tx.amount && (
+                                <span className="text-accent font-bold whitespace-nowrap">
+                                  ฿{tx.amount}
+                                </span>
+                              )}
                             </div>
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleRemoveExtractedTransaction(idx)}
+                              onClick={() =>
+                                handleRemoveExtractedTransaction(idx)
+                              }
                               className="h-7 w-7 p-0 text-danger hover:bg-danger/10 shrink-0"
                               aria-label={`Remove transaction ${idx + 1}`}
                             >
@@ -587,21 +669,37 @@ export default function AddRecordPage() {
                           {/* Editable fields */}
                           <div className="grid grid-cols-2 gap-2">
                             <div className="space-y-1">
-                              <label className="text-muted-foreground font-medium">Date</label>
+                              <label className="text-muted-foreground font-medium">
+                                Date
+                              </label>
                               <input
                                 type="date"
-                                value={tx.date || ''}
-                                onChange={(e) => handleUpdateExtractedTransaction(idx, 'date', e.target.value)}
+                                value={tx.date || ""}
+                                onChange={(e) =>
+                                  handleUpdateExtractedTransaction(
+                                    idx,
+                                    "date",
+                                    e.target.value,
+                                  )
+                                }
                                 className="w-full rounded border border-border bg-white px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-accent"
                               />
                             </div>
                             <div className="space-y-1">
-                              <label className="text-muted-foreground font-medium">Category</label>
+                              <label className="text-muted-foreground font-medium">
+                                Category
+                              </label>
                               <input
                                 type="text"
                                 list={`category-extracted-${idx}`}
-                                value={tx.category || ''}
-                                onChange={(e) => handleUpdateExtractedTransaction(idx, 'category', e.target.value)}
+                                value={tx.category || ""}
+                                onChange={(e) =>
+                                  handleUpdateExtractedTransaction(
+                                    idx,
+                                    "category",
+                                    e.target.value,
+                                  )
+                                }
                                 placeholder="Category"
                                 className="w-full rounded border border-border bg-white px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-accent"
                               />
@@ -641,19 +739,168 @@ export default function AddRecordPage() {
                   disabled={isSubmitting || isProcessing}
                   className="flex-1"
                 >
-                  {isSubmitting ? 'Adding...' : isProcessing ? 'Processing...' : 'Add Transaction'}
+                  {isSubmitting
+                    ? "Adding..."
+                    : isProcessing
+                      ? "Processing..."
+                      : "Add Transaction"}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => router.back()}
-                  disabled={isSubmitting || isProcessing}
+                  onClick={() => {
+                    if (success) return;
+                    router.back();
+                  }}
+                  disabled={isSubmitting || isProcessing || success}
                   className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              History ({selectedMonth || "No month selected"})
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Showing transactions from the same month as the selected date
+            </p>
+          </CardHeader>
+          <CardContent>
+            {historyLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-12 rounded-lg bg-muted animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : historyTransactions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No transactions found for this month.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-muted-foreground">
+                      <th className="py-2 pr-4 font-medium">Date</th>
+                      <th className="py-2 pr-4 font-medium">Type</th>
+                      <th className="py-2 pr-4 font-medium">Category</th>
+                      <th className="py-2 pr-4 font-medium">Amount</th>
+                      <th className="py-2 font-medium">Note</th>
+                      <th className="py-2 pl-4 font-medium text-right">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historyTransactions.map((tx) => (
+                      <tr key={tx.id} className="border-b border-border/50">
+                        <td className="py-2 pr-4 whitespace-nowrap">
+                          {formatDate(tx.date)}
+                        </td>
+                        <td className="py-2 pr-4 capitalize">{tx.type}</td>
+                        <td className="py-2 pr-4">{tx.category}</td>
+                        <td
+                          className={`py-2 pr-4 font-medium whitespace-nowrap ${tx.type === "income" ? "text-success" : "text-danger"}`}
+                        >
+                          {tx.type === "income" ? "+" : "-"}
+                          {formatCurrency(tx.amount, currency.code)}
+                        </td>
+                        <td className="py-2 text-muted-foreground">
+                          {tx.note || "-"}
+                        </td>
+                        <td className="py-2 pl-4 text-right">
+                          <Link href={`/edit/${tx.id}`}>
+                            <Button type="button" variant="ghost" size="sm">
+                              Edit
+                            </Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-muted/40 border-t-2 border-border font-semibold text-sm">
+                      <td
+                        className="py-2 pr-4 text-muted-foreground whitespace-nowrap"
+                        colSpan={3}
+                      >
+                        Total ({historyTransactions.length} transaction
+                        {historyTransactions.length !== 1 ? "s" : ""})
+                      </td>
+                      <td className="py-2 pr-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-success text-xs">
+                            +
+                            {formatCurrency(
+                              historyTransactions
+                                .filter((tx) => tx.type === "income")
+                                .reduce((sum, tx) => sum + tx.amount, 0),
+                              currency.code,
+                            )}
+                          </span>
+                          <span className="text-danger text-xs">
+                            -
+                            {formatCurrency(
+                              historyTransactions
+                                .filter((tx) => tx.type === "expense")
+                                .reduce((sum, tx) => sum + tx.amount, 0),
+                              currency.code,
+                            )}
+                          </span>
+                          <span
+                            className={`text-sm ${
+                              historyTransactions.reduce(
+                                (sum, tx) =>
+                                  sum +
+                                  (tx.type === "income"
+                                    ? tx.amount
+                                    : -tx.amount),
+                                0,
+                              ) >= 0
+                                ? "text-success"
+                                : "text-danger"
+                            }`}
+                          >
+                            Net:{" "}
+                            {historyTransactions.reduce(
+                              (sum, tx) =>
+                                sum +
+                                (tx.type === "income" ? tx.amount : -tx.amount),
+                              0,
+                            ) >= 0
+                              ? "+"
+                              : "-"}
+                            {formatCurrency(
+                              Math.abs(
+                                historyTransactions.reduce(
+                                  (sum, tx) =>
+                                    sum +
+                                    (tx.type === "income"
+                                      ? tx.amount
+                                      : -tx.amount),
+                                  0,
+                                ),
+                              ),
+                              currency.code,
+                            )}
+                          </span>
+                        </div>
+                      </td>
+                      <td colSpan={2} />
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
