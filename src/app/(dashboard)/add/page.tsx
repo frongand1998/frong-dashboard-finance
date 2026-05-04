@@ -252,7 +252,8 @@ export default function AddRecordPage() {
 
     if (successCount > 0) {
       setSuccess(true);
-      reset();
+      const currentDate = selectedDate;
+      reset({ type: "expense", date: currentDate });
       setPayslipImages([]);
       setImagePreviews([]);
       setExtractedTransactions([]);
@@ -317,7 +318,7 @@ export default function AddRecordPage() {
 
       if (result.success) {
         setSuccess(true);
-        reset();
+        reset({ type: data.type, date: data.date });
         setPayslipImages([]);
         setImagePreviews([]);
 
