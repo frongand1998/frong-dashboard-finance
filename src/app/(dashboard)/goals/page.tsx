@@ -1,17 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { PageShell } from '@/components/layout/PageShell';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { getGoals, deleteGoal } from '@/server-actions/goals';
-import { formatCurrency } from '@/lib/utils';
-import { useCurrency } from '@/contexts/CurrencyContext';
-import type { Goal } from '@/types';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { PageShell } from "@/components/layout/PageShell";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { getGoals, deleteGoal } from "@/server-actions/goals";
+import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { useI18n } from "@/contexts/I18nContext";
+import type { Goal } from "@/types";
 
 export default function GoalsPage() {
   const { currency } = useCurrency();
+  const { t } = useI18n();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,10 +26,10 @@ export default function GoalsPage() {
       if (result.success) {
         setGoals(result.data || []);
       } else {
-        setError(result.error || 'Failed to load goals');
+        setError(result.error || "Failed to load goals");
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -38,18 +40,18 @@ export default function GoalsPage() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this goal?')) return;
+    if (!confirm("Are you sure you want to delete this goal?")) return;
 
     try {
       setDeleting(id);
       const result = await deleteGoal(id);
       if (result.success) {
-        setGoals(goals.filter(g => g.id !== id));
+        setGoals(goals.filter((g) => g.id !== id));
       } else {
-        alert(result.error || 'Failed to delete goal');
+        alert(result.error || "Failed to delete goal");
       }
     } catch (err) {
-      alert('An unexpected error occurred');
+      alert("An unexpected error occurred");
     } finally {
       setDeleting(null);
     }
@@ -61,7 +63,7 @@ export default function GoalsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Goals</h1>
+            <h1 className="text-3xl font-bold">{t.goals.title}</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Set and track your financial targets
             </p>
@@ -81,8 +83,11 @@ export default function GoalsPage() {
         {/* Goals List */}
         {loading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-32 rounded bg-slate-100 animate-pulse" />
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-32 rounded bg-slate-100 animate-pulse"
+              />
             ))}
           </div>
         ) : goals.length === 0 ? (
@@ -103,9 +108,13 @@ export default function GoalsPage() {
         ) : (
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
             {goals.map((goal) => {
-              const progress = goal.target_amount > 0 
-                ? Math.min((goal.current_amount / goal.target_amount) * 100, 100) 
-                : 0;
+              const progress =
+                goal.target_amount > 0
+                  ? Math.min(
+                      (goal.current_amount / goal.target_amount) * 100,
+                      100,
+                    )
+                  : 0;
               const remaining = goal.target_amount - goal.current_amount;
               const isCompleted = goal.current_amount >= goal.target_amount;
 
@@ -114,16 +123,16 @@ export default function GoalsPage() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <CardTitle className="capitalize">{goal.name}</CardTitle>
+                        <CardTitle className="capitalize">
+                          {goal.name}
+                        </CardTitle>
                         {goal.due_date && (
                           <p className="text-xs text-muted-foreground mt-1">
                             Due: {new Date(goal.due_date).toLocaleDateString()}
                           </p>
                         )}
                       </div>
-                      {isCompleted && (
-                        <span className="text-2xl">✅</span>
-                      )}
+                      {isCompleted && <span className="text-2xl">✅</span>}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -131,12 +140,14 @@ export default function GoalsPage() {
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span className="text-muted-foreground">Progress</span>
-                        <span className="font-semibold">{progress.toFixed(0)}%</span>
+                        <span className="font-semibold">
+                          {progress.toFixed(0)}%
+                        </span>
                       </div>
                       <div className="relative h-3 bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className={`absolute top-0 left-0 h-full rounded-full transition-all ${
-                            isCompleted ? 'bg-success' : 'bg-accent'
+                            isCompleted ? "bg-success" : "bg-accent"
                           }`}
                           style={{ width: `${progress}%` }}
                         />
@@ -161,7 +172,9 @@ export default function GoalsPage() {
 
                     {!isCompleted && (
                       <div className="text-center p-3 bg-slate-50 rounded-lg">
-                        <p className="text-xs text-muted-foreground">Remaining</p>
+                        <p className="text-xs text-muted-foreground">
+                          Remaining
+                        </p>
                         <p className="text-xl font-bold text-accent">
                           {formatCurrency(remaining, currency.code)}
                         </p>
@@ -181,7 +194,7 @@ export default function GoalsPage() {
                         disabled={deleting === goal.id}
                         className="text-sm text-danger hover:text-danger"
                       >
-                        {deleting === goal.id ? 'Deleting...' : 'Delete'}
+                        {deleting === goal.id ? "Deleting..." : "Delete"}
                       </Button>
                     </div>
                   </CardContent>

@@ -1,8 +1,12 @@
-export const navItems = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Transactions", href: "/transactions" },
-  { label: "Add Record", href: "/add" },
-  { label: "Goals", href: "/goals" },
-  { label: "AI Agent", href: "/ai-agent" },
-  { label: "Settings", href: "/settings" },
+import type { TranslationKeys } from "@/locales/en";
+
+export type NavItemKey = keyof TranslationKeys["nav"];
+
+export const navItems: { labelKey: string; href: string }[] = [
+  { labelKey: "dashboard", href: "/dashboard" },
+  { labelKey: "transactions", href: "/transactions" },
+  { labelKey: "addRecord", href: "/add" },
+  { labelKey: "goals", href: "/goals" },
+  { labelKey: "aiAgent", href: "/ai-agent" },
+  { labelKey: "settings", href: "/settings" },
 ];

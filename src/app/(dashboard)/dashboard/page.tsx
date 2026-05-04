@@ -1,44 +1,70 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { IncomeExpenseChart } from '@/components/charts/IncomeExpenseChart';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { GoalProgress } from '@/components/dashboard/GoalProgress';
-import { TransactionsTable } from '@/components/dashboard/TransactionsTable';
-import { CategoryTiles } from '@/components/dashboard/CategoryTiles';
-import { BudgetProgress } from '@/components/dashboard/BudgetProgress';
-import { PageShell } from '@/components/layout/PageShell';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, Target, PiggyBank, Lightbulb, Scissors, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
-import { getTransactions, getTransactionsSummary } from '@/server-actions/transactions';
-import { getGoals } from '@/server-actions/goals';
-import { getCategorySummary } from '@/server-actions/categories';
-import { getBudgets } from '@/server-actions/budgets';
-import { useCurrency } from '@/contexts/CurrencyContext';
-import type { Transaction, Goal, Budget } from '@/types';
+import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { IncomeExpenseChart } from "@/components/charts/IncomeExpenseChart";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { GoalProgress } from "@/components/dashboard/GoalProgress";
+import { TransactionsTable } from "@/components/dashboard/TransactionsTable";
+import { CategoryTiles } from "@/components/dashboard/CategoryTiles";
+import { BudgetProgress } from "@/components/dashboard/BudgetProgress";
+import { PageShell } from "@/components/layout/PageShell";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import {
+  TrendingUp,
+  TrendingDown,
+  Target,
+  PiggyBank,
+  Lightbulb,
+  Scissors,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import {
+  getTransactions,
+  getTransactionsSummary,
+} from "@/server-actions/transactions";
+import { getGoals } from "@/server-actions/goals";
+import { getCategorySummary } from "@/server-actions/categories";
+import { getBudgets } from "@/server-actions/budgets";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { useI18n } from "@/contexts/I18nContext";
+import type { Transaction, Goal, Budget } from "@/types";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { currency } = useCurrency();
+  const { t } = useI18n();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [summary, setSummary] = useState({ income: 0, expenses: 0 });
   const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [budgetSpends, setBudgetSpends] = useState<{ category: string; expense: number }[]>([]);
+  const [budgetSpends, setBudgetSpends] = useState<
+    { category: string; expense: number }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState(() => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    return new Date(now.getFullYear(), now.getMonth(), 1)
+      .toISOString()
+      .split("T")[0];
   });
   const [endDate, setEndDate] = useState(() => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      .toISOString()
+      .split("T")[0];
   });
 
   useEffect(() => {
@@ -49,20 +75,25 @@ export default function DashboardPage() {
 
         const currentMonth = new Date().toISOString().slice(0, 7);
         const currentMonthStart = `${currentMonth}-01`;
-        const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-        const currentMonthEnd = `${currentMonth}-${String(lastDay).padStart(2, '0')}`;
+        const lastDay = new Date(
+          new Date().getFullYear(),
+          new Date().getMonth() + 1,
+          0,
+        ).getDate();
+        const currentMonthEnd = `${currentMonth}-${String(lastDay).padStart(2, "0")}`;
 
-        const [txnResult, summaryResult, goalsResult, categoryResult, budgetResult, budgetSpendResult] = await Promise.all([
+        const [
+          txnResult,
+          summaryResult,
+          goalsResult,
+          categoryResult,
+          budgetResult,
+          budgetSpendResult,
+        ] = await Promise.all([
           getTransactions(100, 0), // Get more transactions for filtering
-          getTransactionsSummary(
-            startDate,
-            endDate
-          ),
+          getTransactionsSummary(startDate, endDate),
           getGoals(),
-          getCategorySummary(
-            startDate,
-            endDate
-          ),
+          getCategorySummary(startDate, endDate),
           getBudgets(currentMonth),
           getCategorySummary(currentMonthStart, currentMonthEnd),
         ]);
@@ -86,15 +117,25 @@ export default function DashboardPage() {
           setBudgets(budgetResult.data || []);
         }
         if (budgetSpendResult.success) {
-          setBudgetSpends((budgetSpendResult.data || []) as { category: string; expense: number }[]);
+          setBudgetSpends(
+            (budgetSpendResult.data || []) as {
+              category: string;
+              expense: number;
+            }[],
+          );
         }
 
-        if (!txnResult.success || !summaryResult.success || !goalsResult.success || !categoryResult.success) {
-          setError('Failed to load some data');
+        if (
+          !txnResult.success ||
+          !summaryResult.success ||
+          !goalsResult.success ||
+          !categoryResult.success
+        ) {
+          setError("Failed to load some data");
         }
       } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError('Error loading dashboard data');
+        console.error("Error fetching dashboard data:", err);
+        setError("Error loading dashboard data");
       } finally {
         setLoading(false);
       }
@@ -104,11 +145,13 @@ export default function DashboardPage() {
   }, [startDate, endDate]);
 
   const net = summary.income - summary.expenses;
-  const savingsRate = summary.income > 0 ? ((net / summary.income) * 100) : 0;
+  const savingsRate = summary.income > 0 ? (net / summary.income) * 100 : 0;
 
   // Categorised expense breakdown for insights
   const expenseInsights = useMemo(() => {
-    const expenseCats = (categories as { category: string; income: number; expense: number }[])
+    const expenseCats = (
+      categories as { category: string; income: number; expense: number }[]
+    )
       .filter((c) => c.expense > 0)
       .map((c) => ({
         category: c.category,
@@ -119,20 +162,65 @@ export default function DashboardPage() {
 
     // Rough benchmarks (% of income) for common category keywords
     const benchmarks: { keywords: string[]; limit: number; label: string }[] = [
-      { keywords: ['food', 'dining', 'restaurant', 'eat', 'meal', 'grocery', 'groceries'], limit: 15, label: 'Food & Dining' },
-      { keywords: ['entertainment', 'hobby', 'game', 'movie', 'stream', 'subscription'], limit: 10, label: 'Entertainment' },
-      { keywords: ['shopping', 'cloth', 'fashion', 'apparel'], limit: 10, label: 'Shopping' },
-      { keywords: ['transport', 'fuel', 'gas', 'uber', 'taxi', 'grab', 'car'], limit: 15, label: 'Transport' },
-      { keywords: ['bar', 'drink', 'alcohol', 'coffee'], limit: 5, label: 'Coffee & Drinks' },
+      {
+        keywords: [
+          "food",
+          "dining",
+          "restaurant",
+          "eat",
+          "meal",
+          "grocery",
+          "groceries",
+        ],
+        limit: 15,
+        label: "Food & Dining",
+      },
+      {
+        keywords: [
+          "entertainment",
+          "hobby",
+          "game",
+          "movie",
+          "stream",
+          "subscription",
+        ],
+        limit: 10,
+        label: "Entertainment",
+      },
+      {
+        keywords: ["shopping", "cloth", "fashion", "apparel"],
+        limit: 10,
+        label: "Shopping",
+      },
+      {
+        keywords: ["transport", "fuel", "gas", "uber", "taxi", "grab", "car"],
+        limit: 15,
+        label: "Transport",
+      },
+      {
+        keywords: ["bar", "drink", "alcohol", "coffee"],
+        limit: 5,
+        label: "Coffee & Drinks",
+      },
     ];
 
-    const suggestions: { category: string; amount: number; pct: number; benchmark: number; label: string }[] = [];
+    const suggestions: {
+      category: string;
+      amount: number;
+      pct: number;
+      benchmark: number;
+      label: string;
+    }[] = [];
     expenseCats.forEach((cat) => {
       const match = benchmarks.find((b) =>
-        b.keywords.some((k) => cat.category.toLowerCase().includes(k))
+        b.keywords.some((k) => cat.category.toLowerCase().includes(k)),
       );
       if (match && cat.pct > match.limit) {
-        suggestions.push({ ...cat, benchmark: match.limit, label: match.label });
+        suggestions.push({
+          ...cat,
+          benchmark: match.limit,
+          label: match.label,
+        });
       }
     });
 
@@ -150,7 +238,9 @@ export default function DashboardPage() {
 
   // Filter transactions by selected date range
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(tx => tx.date >= startDate && tx.date <= endDate);
+    return transactions.filter(
+      (tx) => tx.date >= startDate && tx.date <= endDate,
+    );
   }, [transactions, startDate, endDate]);
 
   const recentTransactions = filteredTransactions.slice(0, 5);
@@ -160,9 +250,12 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t.dashboard.title}</h1>
           <p className="text-muted-foreground">
-            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            {new Date().toLocaleDateString("en-US", {
+              month: "long",
+              year: "numeric",
+            })}
           </p>
         </div>
 
@@ -175,7 +268,7 @@ export default function DashboardPage() {
         {/* Stats Grid */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
           <StatCard
-            label="Income"
+            label={t.transactionType.income}
             value={summary.income}
             icon={<TrendingUp />}
             delta={{ value: summary.income > 0 ? 12 : 0, positive: true }}
@@ -183,7 +276,7 @@ export default function DashboardPage() {
             currencyCode={currency.code}
           />
           <StatCard
-            label="Expenses"
+            label={t.transactionType.expense}
             value={summary.expenses}
             icon={<TrendingDown />}
             delta={{ value: summary.expenses > 0 ? 8 : 0, positive: false }}
@@ -191,11 +284,11 @@ export default function DashboardPage() {
             currencyCode={currency.code}
           />
           <StatCard
-            label="Net"
+            label={t.dashboard.netBalance}
             value={net}
             icon={<Target />}
             delta={{ value: Math.abs(net > 0 ? 15 : 5), positive: net >= 0 }}
-            variant={net >= 0 ? 'success' : 'danger'}
+            variant={net >= 0 ? "success" : "danger"}
             currencyCode={currency.code}
           />
         </div>
@@ -205,8 +298,10 @@ export default function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Income vs Expenses</CardTitle>
-                <CardDescription>Track your financial flow over time</CardDescription>
+                <CardTitle>{t.dashboard.incomeVsExpense}</CardTitle>
+                <CardDescription>
+                  Track your financial flow over time
+                </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex items-center gap-2">
@@ -234,9 +329,13 @@ export default function DashboardPage() {
                     className="text-xs"
                     onClick={() => {
                       const now = new Date();
-                      const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+                      const yesterday = new Date(
+                        now.getFullYear(),
+                        now.getMonth(),
+                        now.getDate() - 1,
+                      )
                         .toISOString()
-                        .split('T')[0];
+                        .split("T")[0];
                       setStartDate(yesterday);
                       setEndDate(yesterday);
                     }}
@@ -248,9 +347,7 @@ export default function DashboardPage() {
                     variant="ghost"
                     className="text-xs"
                     onClick={() => {
-                      const today = new Date()
-                        .toISOString()
-                        .split('T')[0];
+                      const today = new Date().toISOString().split("T")[0];
                       setStartDate(today);
                       setEndDate(today);
                     }}
@@ -263,17 +360,21 @@ export default function DashboardPage() {
                     className="text-xs"
                     onClick={() => {
                       const now = new Date();
-                      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+                      const start = new Date(
+                        now.getFullYear(),
+                        now.getMonth() - 1,
+                        1,
+                      )
                         .toISOString()
-                        .split('T')[0];
+                        .split("T")[0];
                       const end = new Date(now.getFullYear(), now.getMonth(), 0)
                         .toISOString()
-                        .split('T')[0];
+                        .split("T")[0];
                       setStartDate(start);
                       setEndDate(end);
                     }}
                   >
-                    Last Month
+                    {t.dateRange.lastMonth}
                   </Button>
                   <Button
                     type="button"
@@ -281,17 +382,25 @@ export default function DashboardPage() {
                     className="text-xs"
                     onClick={() => {
                       const now = new Date();
-                      const start = new Date(now.getFullYear(), now.getMonth(), 1)
+                      const start = new Date(
+                        now.getFullYear(),
+                        now.getMonth(),
+                        1,
+                      )
                         .toISOString()
-                        .split('T')[0];
-                      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+                        .split("T")[0];
+                      const end = new Date(
+                        now.getFullYear(),
+                        now.getMonth() + 1,
+                        0,
+                      )
                         .toISOString()
-                        .split('T')[0];
+                        .split("T")[0];
                       setStartDate(start);
                       setEndDate(end);
                     }}
                   >
-                    This Month
+                    {t.dateRange.thisMonth}
                   </Button>
                   <Button
                     type="button"
@@ -301,10 +410,10 @@ export default function DashboardPage() {
                       const now = new Date();
                       const start = new Date(now.getFullYear() - 1, 0, 1)
                         .toISOString()
-                        .split('T')[0];
+                        .split("T")[0];
                       const end = new Date(now.getFullYear() - 1, 11, 31)
                         .toISOString()
-                        .split('T')[0];
+                        .split("T")[0];
                       setStartDate(start);
                       setEndDate(end);
                     }}
@@ -319,15 +428,15 @@ export default function DashboardPage() {
                       const now = new Date();
                       const start = new Date(now.getFullYear(), 0, 1)
                         .toISOString()
-                        .split('T')[0];
+                        .split("T")[0];
                       const end = new Date(now.getFullYear(), 11, 31)
                         .toISOString()
-                        .split('T')[0];
+                        .split("T")[0];
                       setStartDate(start);
                       setEndDate(end);
                     }}
                   >
-                    This Year
+                    {t.dateRange.thisYear}
                   </Button>
                 </div>
               </div>
@@ -338,10 +447,10 @@ export default function DashboardPage() {
               <Skeleton className="h-80" />
             ) : (
               <IncomeExpenseChart
-                data={filteredTransactions.map(tx => ({
+                data={filteredTransactions.map((tx) => ({
                   label: tx.date,
-                  income: tx.type === 'income' ? tx.amount : 0,
-                  expense: tx.type === 'expense' ? tx.amount : 0,
+                  income: tx.type === "income" ? tx.amount : 0,
+                  expense: tx.type === "expense" ? tx.amount : 0,
                 }))}
                 currencyCode={currency.code}
               />
@@ -352,7 +461,7 @@ export default function DashboardPage() {
         {/* Top Categories */}
         <Card>
           <CardHeader>
-            <CardTitle>Top Categories</CardTitle>
+            <CardTitle>{t.dashboard.spendingByCategory}</CardTitle>
             <CardDescription>
               Highest spending and earning categories this month
             </CardDescription>
@@ -360,7 +469,7 @@ export default function DashboardPage() {
           <CardContent>
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map(i => (
+                {[1, 2, 3, 4, 5, 6].map((i) => (
                   <Skeleton key={i} className="h-32" />
                 ))}
               </div>
@@ -371,9 +480,9 @@ export default function DashboardPage() {
                 showAll
                 onCategoryClick={(category) => {
                   const params = new URLSearchParams();
-                  params.set('category', category);
-                  params.set('startDate', startDate);
-                  params.set('endDate', endDate);
+                  params.set("category", category);
+                  params.set("startDate", startDate);
+                  params.set("endDate", endDate);
                   router.push(`/transactions?${params.toString()}`);
                 }}
               />
@@ -388,8 +497,8 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2">
                 <Lightbulb className="w-5 h-5 text-accent" />
                 <div>
-                  <CardTitle>Financial Insights</CardTitle>
-                  <CardDescription>Where to cut back &amp; how to invest your surplus</CardDescription>
+                  <CardTitle>{t.dashboard.financialInsights}</CardTitle>
+                  <CardDescription>{t.dashboard.insightsTip}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -401,26 +510,38 @@ export default function DashboardPage() {
                     <PiggyBank className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium">Savings Rate</span>
                   </div>
-                  <span className={`text-sm font-semibold ${
-                    savingsRate >= 20 ? 'text-success' : savingsRate >= 10 ? 'text-warning' : 'text-danger'
-                  }`}>
+                  <span
+                    className={`text-sm font-semibold ${
+                      savingsRate >= 20
+                        ? "text-success"
+                        : savingsRate >= 10
+                          ? "text-warning"
+                          : "text-danger"
+                    }`}
+                  >
                     {savingsRate.toFixed(1)}%
                   </span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
                   <div
                     className={`h-2 rounded-full transition-all ${
-                      savingsRate >= 20 ? 'bg-success' : savingsRate >= 10 ? 'bg-warning' : 'bg-danger'
+                      savingsRate >= 20
+                        ? "bg-success"
+                        : savingsRate >= 10
+                          ? "bg-warning"
+                          : "bg-danger"
                     }`}
-                    style={{ width: `${Math.min(Math.max(savingsRate, 0), 100)}%` }}
+                    style={{
+                      width: `${Math.min(Math.max(savingsRate, 0), 100)}%`,
+                    }}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {savingsRate >= 20
-                    ? 'Great! You are saving more than 20% of your income.'
+                    ? "Great! You are saving more than 20% of your income."
                     : savingsRate >= 10
-                    ? 'Fair. Aim for 20%+ savings to build wealth faster.'
-                    : 'Low savings rate. Try to reduce expenses to save at least 10% of income.'}
+                      ? "Fair. Aim for 20%+ savings to build wealth faster."
+                      : "Low savings rate. Try to reduce expenses to save at least 10% of income."}
                 </p>
               </div>
 
@@ -445,14 +566,22 @@ export default function DashboardPage() {
                         <AlertTriangle className="w-4 h-4 text-danger mt-0.5 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-sm font-medium truncate">{s.category}</span>
+                            <span className="text-sm font-medium truncate">
+                              {s.category}
+                            </span>
                             <span className="text-xs text-danger shrink-0">
                               {s.pct.toFixed(1)}% of income
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            Spending {formatCurrency(s.amount, currency.code)} — benchmark is &lt;{s.benchmark}% of income.
-                            Try reducing by {formatCurrency(s.amount - (summary.income * s.benchmark / 100), currency.code)} to hit target.
+                            Spending {formatCurrency(s.amount, currency.code)} —
+                            benchmark is &lt;{s.benchmark}% of income. Try
+                            reducing by{" "}
+                            {formatCurrency(
+                              s.amount - (summary.income * s.benchmark) / 100,
+                              currency.code,
+                            )}{" "}
+                            to hit target.
                           </p>
                         </div>
                       </div>
@@ -466,26 +595,52 @@ export default function DashboardPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Monthly Surplus — Suggested Allocation</span>
+                    <span className="text-sm font-medium">
+                      Monthly Surplus — Suggested Allocation
+                    </span>
                     <span className="ml-auto text-sm font-semibold text-success">
                       {formatCurrency(net, currency.code)}
                     </span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="rounded-xl border border-border p-3 text-center space-y-1">
-                      <p className="text-xs text-muted-foreground">50% — Emergency Fund</p>
-                      <p className="text-sm font-semibold">{formatCurrency(investmentPlan.emergency, currency.code)}</p>
-                      <p className="text-xs text-muted-foreground">Target: 6× monthly expenses</p>
+                      <p className="text-xs text-muted-foreground">
+                        50% — Emergency Fund
+                      </p>
+                      <p className="text-sm font-semibold">
+                        {formatCurrency(
+                          investmentPlan.emergency,
+                          currency.code,
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Target: 6× monthly expenses
+                      </p>
                     </div>
                     <div className="rounded-xl border border-border p-3 text-center space-y-1">
-                      <p className="text-xs text-muted-foreground">30% — Stocks / ETFs</p>
-                      <p className="text-sm font-semibold">{formatCurrency(investmentPlan.stocks, currency.code)}</p>
-                      <p className="text-xs text-muted-foreground">Index funds, long-term growth</p>
+                      <p className="text-xs text-muted-foreground">
+                        30% — Stocks / ETFs
+                      </p>
+                      <p className="text-sm font-semibold">
+                        {formatCurrency(investmentPlan.stocks, currency.code)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Index funds, long-term growth
+                      </p>
                     </div>
                     <div className="rounded-xl border border-border p-3 text-center space-y-1">
-                      <p className="text-xs text-muted-foreground">20% — Short-term Savings</p>
-                      <p className="text-sm font-semibold">{formatCurrency(investmentPlan.shortSavings, currency.code)}</p>
-                      <p className="text-xs text-muted-foreground">Vacations, big purchases</p>
+                      <p className="text-xs text-muted-foreground">
+                        20% — Short-term Savings
+                      </p>
+                      <p className="text-sm font-semibold">
+                        {formatCurrency(
+                          investmentPlan.shortSavings,
+                          currency.code,
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Vacations, big purchases
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -494,11 +649,15 @@ export default function DashboardPage() {
               {/* Top expense breakdown */}
               {expenseInsights.expenseCats.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-sm font-medium">Expense Breakdown by Category</span>
+                  <span className="text-sm font-medium">
+                    Expense Breakdown by Category
+                  </span>
                   <div className="space-y-2 mt-2">
                     {expenseInsights.expenseCats.slice(0, 6).map((c) => (
                       <div key={c.category} className="flex items-center gap-3">
-                        <span className="text-xs text-muted-foreground w-28 truncate shrink-0">{c.category}</span>
+                        <span className="text-xs text-muted-foreground w-28 truncate shrink-0">
+                          {c.category}
+                        </span>
                         <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
                           <div
                             className="h-1.5 rounded-full bg-accent/70"
@@ -526,15 +685,17 @@ export default function DashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Budget Limits</CardTitle>
+                  <CardTitle>{t.dashboard.budgetProgress}</CardTitle>
                   <CardDescription>
-                    {loading ? 'Loading...' : `Current month — ${budgets.length} budget${budgets.length !== 1 ? 's' : ''} set`}
+                    {loading
+                      ? t.common.loading
+                      : `Current month — ${budgets.length} budget${budgets.length !== 1 ? "s" : ""} set`}
                   </CardDescription>
                 </div>
                 <Button
                   variant="ghost"
                   className="text-xs"
-                  onClick={() => router.push('/settings#budgets')}
+                  onClick={() => router.push("/settings#budgets")}
                 >
                   Manage
                 </Button>
@@ -561,9 +722,9 @@ export default function DashboardPage() {
           {/* Goals */}
           <Card>
             <CardHeader>
-              <CardTitle>Financial Goals</CardTitle>
+              <CardTitle>{t.dashboard.goalProgress}</CardTitle>
               <CardDescription>
-                {loading ? 'Loading...' : `${goals.length} active goals`}
+                {loading ? t.common.loading : `${goals.length} active goals`}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -576,7 +737,7 @@ export default function DashboardPage() {
                 <GoalProgress goals={goals.slice(0, 3)} />
               ) : (
                 <p className="text-sm text-muted-foreground py-4">
-                  No goals yet. Create one to get started!
+                  {t.dashboard.noGoals}
                 </p>
               )}
             </CardContent>
@@ -585,9 +746,9 @@ export default function DashboardPage() {
           {/* Recent Transactions */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Transactions</CardTitle>
+              <CardTitle>{t.dashboard.recentTransactions}</CardTitle>
               <CardDescription>
-                {loading ? 'Loading...' : `${recentTransactions.length} recent`}
+                {loading ? "Loading..." : `${recentTransactions.length} recent`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -598,10 +759,14 @@ export default function DashboardPage() {
                   <Skeleton className="h-12" />
                 </>
               ) : recentTransactions.length > 0 ? (
-                <TransactionsTable transactions={recentTransactions} compact currencyCode={currency.code} />
+                <TransactionsTable
+                  transactions={recentTransactions}
+                  compact
+                  currencyCode={currency.code}
+                />
               ) : (
                 <p className="text-sm text-muted-foreground py-4">
-                  No transactions yet
+                  {t.dashboard.noTransactions}
                 </p>
               )}
             </CardContent>
