@@ -10,6 +10,8 @@ const en = {
     menu: "Menu",
     notifications: "Notifications",
     signIn: "Sign in",
+    appName: "Your Finance Assistant",
+    setUpClerk: "Set up Clerk",
     toggleNav: "Toggle navigation",
     closeMenu: "Close menu",
   },
@@ -48,6 +50,7 @@ const en = {
     submit: "Submit",
     reset: "Reset",
     currency: "Currency",
+    welcome: "Welcome",
   },
 
   // Transaction types
@@ -209,13 +212,66 @@ const en = {
 
   // Home / Landing page
   home: {
-    hero: "Your Finance Assistant",
+    brandName: "Your Finance Assistant",
+    heroTitle: "Your smart personal finance companion",
     heroSubtitle:
-      "Track expenses, scan Thai payment slips, and achieve your financial goals.",
-    getStarted: "Get Started",
-    goToDashboard: "Go to Dashboard",
-    features: "Features",
-    learnMore: "Learn More",
+      "Track expenses, scan Thai payment slips, and stay on top of your financial goals in one place.",
+    primaryCta: "Get Started Free",
+    secondaryCta: "Sign In",
+    featuresTitle: "Everything you need to manage your money",
+    featuresSubtitle:
+      "Track spending, scan slips, and review your financial progress with practical tools built for everyday use.",
+    featureOcrTitle: "Payment Slip OCR",
+    featureOcrDescription:
+      "Scan Thai payment slips instantly and extract transaction details with less manual entry.",
+    featureTrackingTitle: "Smart Tracking",
+    featureTrackingDescription:
+      "Monitor income and expenses with dashboard summaries and visual analytics.",
+    featureGoalsTitle: "Goal Setting",
+    featureGoalsDescription:
+      "Set savings targets and follow your progress with clear milestones.",
+    featureSearchTitle: "Search and Filter",
+    featureSearchDescription:
+      "Find transactions quickly across notes, categories, and amounts.",
+    featureExportTitle: "Export Data",
+    featureExportDescription:
+      "Download your transaction history as CSV for analysis or reporting.",
+    featureMobileTitle: "Mobile Friendly",
+    featureMobileDescription:
+      "Use the dashboard comfortably on desktop, tablet, or phone.",
+    statsScans: "Free OCR scans per month",
+    statsBatch: "Slips per batch",
+    statsFree: "Free to use",
+    ctaTitle: "Ready to take control of your finances?",
+    ctaSubtitle:
+      "Create an account and start tracking your money with a workflow built for daily use.",
+    ctaButton: "Start for Free",
+    testimonialsTitle: "What users say",
+    testimonialOne:
+      '"The payment slip OCR feature saves a lot of time. I no longer have to enter every transfer manually."',
+    testimonialTwo:
+      '"The interface is clear and practical. I can review my spending without digging through bank apps."',
+    testimonialThree:
+      '"Goal tracking makes it easier to stay consistent with saving every month."',
+    product: "Product",
+    resources: "Resources",
+    community: "Community",
+    feedback: "Feedback",
+    productFeatures: "Features",
+    productPricing: "Pricing",
+    productRoadmap: "Roadmap",
+    resourcesDocumentation: "Documentation",
+    resourcesApiGuide: "API Guide",
+    resourcesSupport: "Support",
+    communityGithub: "GitHub",
+    communityTwitter: "Twitter",
+    communityDiscord: "Discord",
+    feedbackPrompt: "Help us improve the product with direct feedback.",
+    feedbackAction: "Share Feedback",
+    builtWith: "Built with Next.js, Supabase, and Tesseract.js",
+    privacyPolicy: "Privacy Policy",
+    termsOfService: "Terms of Service",
+    contact: "Contact",
   },
 
   // Date range selector
@@ -238,5 +294,9 @@ const en = {
   },
 } as const;
 
-export type TranslationKeys = typeof en;
+type TranslationShape<T> = {
+  [Key in keyof T]: T[Key] extends string ? string : TranslationShape<T[Key]>;
+};
+
+export type TranslationKeys = TranslationShape<typeof en>;
 export default en;

@@ -12,6 +12,8 @@ const th: TranslationKeys = {
     menu: "เมนู",
     notifications: "การแจ้งเตือน",
     signIn: "เข้าสู่ระบบ",
+    appName: "ผู้ช่วยการเงินของคุณ",
+    setUpClerk: "ตั้งค่า Clerk",
     toggleNav: "สลับเมนูนำทาง",
     closeMenu: "ปิดเมนู",
   },
@@ -50,6 +52,7 @@ const th: TranslationKeys = {
     submit: "ส่ง",
     reset: "รีเซ็ต",
     currency: "สกุลเงิน",
+    welcome: "ยินดีต้อนรับ",
   },
 
   // Transaction types
@@ -208,13 +211,66 @@ const th: TranslationKeys = {
 
   // Home / Landing
   home: {
-    hero: "ผู้ช่วยการเงินของคุณ",
+    brandName: "ผู้ช่วยการเงินของคุณ",
+    heroTitle: "ผู้ช่วยจัดการการเงินส่วนตัวที่ใช้งานได้ทุกวัน",
     heroSubtitle:
-      "ติดตามรายจ่าย สแกนสลิปการชำระเงิน และบรรลุเป้าหมายทางการเงิน",
-    getStarted: "เริ่มต้นใช้งาน",
-    goToDashboard: "ไปที่แดชบอร์ด",
-    features: "ฟีเจอร์",
-    learnMore: "เรียนรู้เพิ่มเติม",
+      "ติดตามรายจ่าย สแกนสลิปไทย และดูความคืบหน้าเป้าหมายทางการเงินได้ในที่เดียว",
+    primaryCta: "เริ่มใช้ฟรี",
+    secondaryCta: "เข้าสู่ระบบ",
+    featuresTitle: "ทุกอย่างที่ต้องใช้ในการจัดการเงินของคุณ",
+    featuresSubtitle:
+      "ติดตามค่าใช้จ่าย สแกนสลิป และดูภาพรวมการเงินด้วยเครื่องมือที่ใช้งานได้จริง",
+    featureOcrTitle: "OCR สลิปการชำระเงิน",
+    featureOcrDescription:
+      "สแกนสลิปไทยและดึงรายละเอียดธุรกรรมได้ทันที ลดการกรอกข้อมูลด้วยมือ",
+    featureTrackingTitle: "ติดตามอย่างชาญฉลาด",
+    featureTrackingDescription:
+      "ดูรายรับรายจ่ายผ่านแดชบอร์ดและภาพรวมเชิงวิเคราะห์",
+    featureGoalsTitle: "ตั้งเป้าหมายการเงิน",
+    featureGoalsDescription:
+      "ตั้งเป้าหมายการออมและติดตามความคืบหน้าได้อย่างชัดเจน",
+    featureSearchTitle: "ค้นหาและกรอง",
+    featureSearchDescription:
+      "ค้นหารายการได้รวดเร็วจากหมายเหตุ หมวดหมู่ และจำนวนเงิน",
+    featureExportTitle: "ส่งออกข้อมูล",
+    featureExportDescription:
+      "ดาวน์โหลดประวัติธุรกรรมเป็น CSV เพื่อนำไปวิเคราะห์หรือจัดทำรายงาน",
+    featureMobileTitle: "รองรับมือถือ",
+    featureMobileDescription:
+      "ใช้งานได้สะดวกทั้งบนเดสก์ท็อป แท็บเล็ต และมือถือ",
+    statsScans: "จำนวนสแกน OCR ฟรีต่อเดือน",
+    statsBatch: "จำนวนสลิปต่อรอบ",
+    statsFree: "ใช้งานฟรี",
+    ctaTitle: "พร้อมจัดการการเงินของคุณให้เป็นระบบหรือยัง",
+    ctaSubtitle:
+      "สร้างบัญชีแล้วเริ่มติดตามการเงินด้วย workflow ที่ออกแบบมาสำหรับการใช้งานจริง",
+    ctaButton: "เริ่มใช้ฟรี",
+    testimonialsTitle: "ผู้ใช้พูดถึงเราอย่างไร",
+    testimonialOne:
+      '"ฟีเจอร์ OCR สลิปช่วยประหยัดเวลาได้มาก ไม่ต้องกรอกข้อมูลโอนเองทุกครั้ง"',
+    testimonialTwo:
+      '"หน้าตาชัดเจน ใช้งานง่าย ดูรายจ่ายได้เร็วโดยไม่ต้องไล่เปิดหลายแอปธนาคาร"',
+    testimonialThree:
+      '"การติดตามเป้าหมายช่วยให้เก็บเงินได้สม่ำเสมอขึ้นทุกเดือน"',
+    product: "ผลิตภัณฑ์",
+    resources: "ทรัพยากร",
+    community: "ชุมชน",
+    feedback: "ข้อเสนอแนะ",
+    productFeatures: "ฟีเจอร์",
+    productPricing: "ราคา",
+    productRoadmap: "แผนงาน",
+    resourcesDocumentation: "เอกสาร",
+    resourcesApiGuide: "คู่มือ API",
+    resourcesSupport: "ช่วยเหลือ",
+    communityGithub: "GitHub",
+    communityTwitter: "Twitter",
+    communityDiscord: "Discord",
+    feedbackPrompt: "ช่วยเราปรับปรุงผลิตภัณฑ์ด้วยความคิดเห็นของคุณ",
+    feedbackAction: "ส่งข้อเสนอแนะ",
+    builtWith: "สร้างด้วย Next.js, Supabase และ Tesseract.js",
+    privacyPolicy: "นโยบายความเป็นส่วนตัว",
+    termsOfService: "ข้อกำหนดการให้บริการ",
+    contact: "ติดต่อ",
   },
 
   // Date range selector

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { I18nProvider } from "@/contexts/I18nContext";
+import { LOCALE_COOKIE_KEY, resolveLocale } from "@/lib/i18n";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -67,23 +69,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const initialLocale = resolveLocale(
+    cookieStore.get(LOCALE_COOKIE_KEY)?.value,
+  );
+
   // Use a placeholder key if not configured to allow builds without env
   const publishableKey =
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_live_demo";
 
   return (
     <ClerkProvider publishableKey={publishableKey}>
-      <html lang="en">
+      <html lang={initialLocale}>
         <body
           className={`${geistSans.variable} ${geistMono.variable} bg-surface text-foreground antialiased`}
           suppressHydrationWarning
         >
-          <I18nProvider>{children}</I18nProvider>
+          <I18nProvider initialLocale={initialLocale}>{children}</I18nProvider>
         </body>
       </html>
     </ClerkProvider>

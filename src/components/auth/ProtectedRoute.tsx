@@ -1,12 +1,14 @@
-'use client';
+"use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { useI18n } from "@/contexts/I18nContext";
 import type { PropsWithChildren } from "react";
 import { redirect } from "next/navigation";
 import { useEffect } from "react";
 
 export const ProtectedRoute = ({ children }: PropsWithChildren) => {
   const { isSignedIn, isLoaded } = useAuth();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -21,7 +23,7 @@ export const ProtectedRoute = ({ children }: PropsWithChildren) => {
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-accent text-2xl font-bold text-white animate-pulse">
             Y
           </div>
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">{t.common.loading}</p>
         </div>
       </div>
     );

@@ -31,7 +31,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-white shadow-sm">
               Y
             </span>
-            <span className="hidden sm:inline">Your Finance Assistant</span>
+            <span className="hidden sm:inline">{t.nav.appName}</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -62,7 +62,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
             </>
           ) : (
             <Button variant="soft" size="sm">
-              Set up Clerk
+              {t.nav.setUpClerk}
             </Button>
           )}
         </div>

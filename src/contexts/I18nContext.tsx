@@ -7,15 +7,16 @@ import {
   useState,
   type PropsWithChildren,
 } from "react";
-import en from "@/locales/en";
-import th from "@/locales/th";
+import { useRouter } from "next/navigation";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE_KEY,
+  LOCALE_STORAGE_KEY,
+  getTranslations,
+  resolveLocale,
+  type Locale,
+} from "@/lib/i18n";
 import type { TranslationKeys } from "@/locales/en";
-
-export type Locale = "en" | "th";
-
-const translations: Record<Locale, TranslationKeys> = { en, th };
-
-const STORAGE_KEY = "locale";
 
 interface I18nContextValue {
   locale: Locale;
@@ -24,30 +25,40 @@ interface I18nContextValue {
 }
 
 const I18nContext = createContext<I18nContextValue>({
-  locale: "en",
+  locale: DEFAULT_LOCALE,
   setLocale: () => {},
-  t: en,
+  t: getTranslations(DEFAULT_LOCALE),
 });
 
-export function I18nProvider({ children }: PropsWithChildren) {
-  const [locale, setLocaleState] = useState<Locale>("en");
+export function I18nProvider({
+  children,
+  initialLocale = DEFAULT_LOCALE,
+}: PropsWithChildren<{ initialLocale?: Locale }>) {
+  const router = useRouter();
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window === "undefined") {
+      return initialLocale;
+    }
+
+    return resolveLocale(localStorage.getItem(LOCALE_STORAGE_KEY));
+  });
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
-    if (stored === "en" || stored === "th") {
-      setLocaleState(stored);
-    }
-  }, []);
+    document.documentElement.lang = locale;
+    document.cookie = `${LOCALE_COOKIE_KEY}=${locale}; path=/; max-age=31536000; samesite=lax`;
+  }, [locale]);
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);
-    localStorage.setItem(STORAGE_KEY, newLocale);
+    localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
     document.documentElement.lang = newLocale;
+    document.cookie = `${LOCALE_COOKIE_KEY}=${newLocale}; path=/; max-age=31536000; samesite=lax`;
+    router.refresh();
   };
 
   return (
     <I18nContext.Provider
-      value={{ locale, setLocale, t: translations[locale] }}
+      value={{ locale, setLocale, t: getTranslations(locale) }}
     >
       {children}
     </I18nContext.Provider>
