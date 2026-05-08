@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
@@ -262,6 +263,34 @@ export default async function HomePage() {
         </div>
       </div>
 
+      {/* Support Section */}
+      <div className="container mx-auto px-4 py-16">
+        <Card className="mx-auto max-w-3xl border-2 border-accent/20 bg-white/80">
+          <CardContent className="space-y-6 p-6 text-center sm:p-10">
+            <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
+              {t.home.supportTitle}
+            </h2>
+            <p className="mx-auto max-w-2xl text-muted-foreground">
+              {t.home.supportSubtitle}
+            </p>
+            <div className="mx-auto w-fit rounded-2xl border border-border bg-white p-3 shadow-sm">
+              <Image
+                src="/buy-me-coffee-qr.png?v=1"
+                alt={t.home.supportHint}
+                width={280}
+                height={280}
+                className="rounded-xl"
+                priority
+                unoptimized
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {t.home.supportHint}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Footer */}
       <div className="border-t border-border bg-muted/20">
         <div className="container mx-auto px-4 py-12">
@@ -380,36 +409,32 @@ export default async function HomePage() {
               <p className="text-sm text-muted-foreground mb-3">
                 {t.home.feedbackPrompt}
               </p>
-              <a
-                href="https://forms.gle/your-feedback-form"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <Link href="/feedback">
                 <Button variant="ghost" className="text-sm">
                   {t.home.feedbackAction}
                 </Button>
-              </a>
+              </Link>
             </div>
           </div>
           <div className="border-t border-border pt-8 text-center">
             <p className="text-sm text-muted-foreground mb-4">
               © 2026 Frong Finance. {t.home.builtWith}
             </p>
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground">
               <Link
                 href="/privacy"
                 className="hover:text-accent transition-colors"
               >
                 {t.home.privacyPolicy}
               </Link>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <Link
                 href="/terms"
                 className="hover:text-accent transition-colors"
               >
                 {t.home.termsOfService}
               </Link>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <a
                 href="mailto:hello@frongfinance.com"
                 className="hover:text-accent transition-colors"

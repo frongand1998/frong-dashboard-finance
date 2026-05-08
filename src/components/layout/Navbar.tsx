@@ -34,22 +34,22 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
             <span className="hidden sm:inline">{t.nav.appName}</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
           <button
             aria-label={t.nav.notifications}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-slate-600 hover:bg-slate-100"
+            className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-slate-600 hover:bg-slate-100"
           >
             <Bell className="h-4 w-4" />
           </button>
           {isClerkReady ? (
             <>
               <SignedIn>
-                {" "}
-                <UserGreeting />
+                <div className="hidden lg:block">
+                  <UserGreeting />
+                </div>
               </SignedIn>
               <SignedIn>
-                {" "}
                 <UserButton afterSignOutUrl="/" />
               </SignedIn>
               <SignedOut>

@@ -37,6 +37,11 @@ body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
 }
 
+html[lang="th"] body {
+  font-family: var(--font-noto-sans-thai), var(--font-geist-sans), system-ui,
+    -apple-system, sans-serif;
+}
+
 * {
   box-sizing: border-box;
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { cookies } from "next/headers";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_Thai } from "next/font/google";
 import { I18nProvider } from "@/contexts/I18nContext";
 import { LOCALE_COOKIE_KEY, resolveLocale } from "@/lib/i18n";
 import "./globals.css";
@@ -14,6 +14,11 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const notoSansThai = Noto_Sans_Thai({
+  variable: "--font-noto-sans-thai",
+  subsets: ["thai", "latin"],
 });
 
 export const metadata: Metadata = {
@@ -87,7 +92,7 @@ export default async function RootLayout({
     <ClerkProvider publishableKey={publishableKey}>
       <html lang={initialLocale}>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} bg-surface text-foreground antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} ${notoSansThai.variable} bg-surface text-foreground antialiased`}
           suppressHydrationWarning
         >
           <I18nProvider initialLocale={initialLocale}>{children}</I18nProvider>

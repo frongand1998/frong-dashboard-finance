@@ -25,6 +25,11 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import type { Transaction } from "@/types";
 
+const getDefaultFormValues = (): Partial<TransactionFormData> => ({
+  type: "expense",
+  date: new Date().toISOString().split("T")[0],
+});
+
 export default function AddRecordPage() {
   const router = useRouter();
   const { currency } = useCurrency();
@@ -61,10 +66,7 @@ export default function AddRecordPage() {
     formState: { errors },
   } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
-    defaultValues: {
-      type: "expense",
-      date: new Date().toISOString().split("T")[0],
-    },
+    defaultValues: getDefaultFormValues(),
   });
 
   useEffect(() => {
@@ -252,8 +254,7 @@ export default function AddRecordPage() {
 
     if (successCount > 0) {
       setSuccess(true);
-      const currentDate = selectedDate;
-      reset({ type: "expense", date: currentDate });
+      reset(getDefaultFormValues());
       setPayslipImages([]);
       setImagePreviews([]);
       setExtractedTransactions([]);
@@ -318,9 +319,12 @@ export default function AddRecordPage() {
 
       if (result.success) {
         setSuccess(true);
-        reset({ type: data.type, date: data.date });
+        reset(getDefaultFormValues());
         setPayslipImages([]);
         setImagePreviews([]);
+        setExtractedTransactions([]);
+
+        alert("✅ Transaction saved successfully!");
 
         const transactionsResult = await getTransactions(500, 0);
         if (transactionsResult.success) {
@@ -338,7 +342,7 @@ export default function AddRecordPage() {
 
   return (
     <PageShell>
-      <div className="max-w-2xl w-full space-y-6">
+      <div className="min-w-0 w-full max-w-2xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Add Transaction</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -585,7 +589,7 @@ export default function AddRecordPage() {
 
                 {/* Batch Processing Controls */}
                 {imagePreviews.length > 0 && (
-                  <div className="flex gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row">
                     <Button
                       type="button"
                       onClick={handleProcessSlips}
@@ -593,7 +597,7 @@ export default function AddRecordPage() {
                         isProcessing || extractedTransactions.length > 0
                       }
                       variant="primary"
-                      className="flex-1"
+                      className="w-full flex-1"
                     >
                       {isProcessing
                         ? `Processing ${processingProgress.current}/${processingProgress.total}...`
@@ -604,6 +608,7 @@ export default function AddRecordPage() {
                       onClick={handleClearAll}
                       disabled={isProcessing}
                       variant="ghost"
+                      className="w-full sm:w-auto"
                     >
                       Clear All
                     </Button>
@@ -667,7 +672,7 @@ export default function AddRecordPage() {
                             </Button>
                           </div>
                           {/* Editable fields */}
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             <div className="space-y-1">
                               <label className="text-muted-foreground font-medium">
                                 Date
@@ -727,7 +732,7 @@ export default function AddRecordPage() {
               {/* Success Message */}
               {success && (
                 <div className="rounded-lg bg-success/10 p-4 text-sm text-success">
-                  Transaction added successfully! Redirecting...
+                  Transaction added successfully!
                 </div>
               )}
 
@@ -786,16 +791,16 @@ export default function AddRecordPage() {
                 No transactions found for this month.
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="w-full overflow-x-auto">
+                <table className="w-full table-fixed text-sm">
                   <thead>
                     <tr className="border-b border-border text-left text-muted-foreground">
                       <th className="py-2 pr-4 font-medium">Date</th>
                       <th className="py-2 pr-4 font-medium">Type</th>
                       <th className="py-2 pr-4 font-medium">Category</th>
                       <th className="py-2 pr-4 font-medium">Amount</th>
-                      <th className="py-2 font-medium">Note</th>
-                      <th className="py-2 pl-4 font-medium text-right">
+                      <th className="w-1/3 py-2 font-medium">Note</th>
+                      <th className="py-2 pl-4 text-right font-medium whitespace-nowrap">
                         Action
                       </th>
                     </tr>
@@ -814,7 +819,7 @@ export default function AddRecordPage() {
                           {tx.type === "income" ? "+" : "-"}
                           {formatCurrency(tx.amount, currency.code)}
                         </td>
-                        <td className="py-2 text-muted-foreground">
+                        <td className="py-2 text-muted-foreground wrap-break-word">
                           {tx.note || "-"}
                         </td>
                         <td className="py-2 pl-4 text-right">

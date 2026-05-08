@@ -1,9 +1,11 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navItems } from "@/config/routes";
 import { useI18n } from "@/contexts/I18nContext";
+import { hasAdminAccess } from "@/lib/admin";
 import clsx from "clsx";
 
 export const Sidebar = ({
@@ -13,8 +15,17 @@ export const Sidebar = ({
   isOpen: boolean;
   onClose: () => void;
 }) => {
+  const { user } = useUser();
   const pathname = usePathname();
   const { t } = useI18n();
+  const canAccessAdmin = hasAdminAccess(user);
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.href === "/admin") {
+      return canAccessAdmin;
+    }
+    return true;
+  });
 
   return (
     <aside
@@ -36,7 +47,7 @@ export const Sidebar = ({
         </button>
       </div>
       <nav className="space-y-1 px-3 py-4">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const active = pathname === item.href;
           const label =
             t.nav[item.labelKey as keyof typeof t.nav] ?? item.labelKey;

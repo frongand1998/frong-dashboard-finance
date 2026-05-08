@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
@@ -10,11 +10,18 @@ export const PageShell = ({ children }: PropsWithChildren) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen overflow-x-hidden bg-surface">
       <Navbar onMenuClick={() => setIsSidebarOpen(true)} />
       <div className="relative mx-auto flex max-w-7xl gap-0 lg:gap-6">
-        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <main className={clsx("flex-1 px-4 pb-10 pt-6 sm:px-6 lg:px-0")}>{children}</main>
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+        <main
+          className={clsx("min-w-0 flex-1 px-4 pb-10 pt-6 sm:px-6 lg:px-0")}
+        >
+          {children}
+        </main>
       </div>
       {isSidebarOpen && (
         <div
