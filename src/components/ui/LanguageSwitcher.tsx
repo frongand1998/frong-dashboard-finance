@@ -1,6 +1,7 @@
 "use client";
 
-import { useI18n, type Locale } from "@/contexts/I18nContext";
+import { useI18n } from "@/contexts/I18nContext";
+import type { Locale } from "@/lib/i18n";
 
 const localeLabels: Record<Locale, string> = {
   en: "EN",
