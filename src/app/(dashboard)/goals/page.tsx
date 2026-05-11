@@ -9,11 +9,13 @@ import { getGoals, deleteGoal } from "@/server-actions/goals";
 import { formatCurrency } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useI18n } from "@/contexts/I18nContext";
+import { ToastContainer, useToast } from "@/components/ui/toast";
 import type { Goal } from "@/types";
 
 export default function GoalsPage() {
   const { currency } = useCurrency();
   const { t } = useI18n();
+  const { toasts, toast, dismiss } = useToast();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,10 +50,10 @@ export default function GoalsPage() {
       if (result.success) {
         setGoals(goals.filter((g) => g.id !== id));
       } else {
-        alert(result.error || "Failed to delete goal");
+        toast(result.error || "Failed to delete goal", "error");
       }
     } catch (err) {
-      alert("An unexpected error occurred");
+      toast("An unexpected error occurred", "error");
     } finally {
       setDeleting(null);
     }
@@ -59,6 +61,7 @@ export default function GoalsPage() {
 
   return (
     <PageShell>
+      <ToastContainer toasts={toasts} onDismiss={dismiss} />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

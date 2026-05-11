@@ -39,3 +39,23 @@ export type Budget = {
   created_at?: string;
   updated_at?: string;
 };
+
+export type RecurringFrequency = "daily" | "weekly" | "monthly";
+
+export type RecurringRule = {
+  id: string;
+  user_id: string;
+  name: string;
+  type: TransactionType;
+  category: string;
+  amount: number;
+  frequency: RecurringFrequency;
+  start_date: string;
+  next_run_on: string;
+  anchor_day?: number | null;
+  note?: string | null;
+  is_active: boolean;
+  last_run_on?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { Upload, X, FileImage } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useRef } from "react";
+import { Upload, X, FileImage, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ImageUploadProps {
   onImagesSelect: (files: File[]) => void;
@@ -11,16 +11,22 @@ interface ImageUploadProps {
   maxFiles?: number;
 }
 
-export function ImageUpload({ onImagesSelect, onImageRemove, previews, maxFiles = 10 }: ImageUploadProps) {
+export function ImageUpload({
+  onImagesSelect,
+  onImageRemove,
+  previews,
+  maxFiles = 10,
+}: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   };
@@ -43,18 +49,21 @@ export function ImageUpload({ onImagesSelect, onImageRemove, previews, maxFiles 
   };
 
   const handleFiles = (files: File[]) => {
+    setFileError(null);
     // Filter image files only
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
-    
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
     if (imageFiles.length === 0) {
-      alert('Please upload image files');
+      setFileError("Please upload image files only.");
       return;
     }
 
     // Check total count
     const totalFiles = previews.length + imageFiles.length;
     if (totalFiles > maxFiles) {
-      alert(`Maximum ${maxFiles} files allowed. You can upload ${maxFiles - previews.length} more.`);
+      setFileError(
+        `Maximum ${maxFiles} files allowed. You can upload ${maxFiles - previews.length} more.`,
+      );
       return;
     }
 
@@ -69,11 +78,17 @@ export function ImageUpload({ onImagesSelect, onImageRemove, previews, maxFiles 
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">Payslip Image (Optional)</label>
-      
+
+      {fileError && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {fileError}
+        </div>
+      )}
       {previews.length === 0 ? (
         <div
           className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            dragActive ? 'border-accent bg-accent/5' : 'border-border'
+            dragActive ? "border-accent bg-accent/5" : "border-border"
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -88,14 +103,14 @@ export function ImageUpload({ onImagesSelect, onImageRemove, previews, maxFiles 
             onChange={handleChange}
             className="hidden"
           />
-          
+
           <div className="flex flex-col items-center gap-3">
             <div className="rounded-full bg-accent/10 p-3">
               <Upload className="w-6 h-6 text-accent" />
             </div>
             <div>
               <p className="text-sm font-medium">
-                Drop payment slips here or{' '}
+                Drop payment slips here or{" "}
                 <button
                   type="button"
                   onClick={onButtonClick}
@@ -113,7 +128,10 @@ export function ImageUpload({ onImagesSelect, onImageRemove, previews, maxFiles 
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           {previews.map((preview, index) => (
-            <div key={index} className="relative rounded-lg border border-border overflow-hidden group">
+            <div
+              key={index}
+              className="relative rounded-lg border border-border overflow-hidden group"
+            >
               <img
                 src={preview}
                 alt={`Slip ${index + 1}`}
@@ -131,7 +149,7 @@ export function ImageUpload({ onImagesSelect, onImageRemove, previews, maxFiles 
               </div>
             </div>
           ))}
-          
+
           {previews.length < maxFiles && (
             <button
               type="button"
@@ -144,14 +162,16 @@ export function ImageUpload({ onImagesSelect, onImageRemove, previews, maxFiles 
           )}
         </div>
       )}
-      
+
       {previews.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          📎 {previews.length} of {maxFiles} slips uploaded • Each slip will be processed separately
+          📎 {previews.length} of {maxFiles} slips uploaded • Each slip will be
+          processed separately
         </p>
       )}
       <p className="text-xs text-muted-foreground">
-        💡 Upload multiple payment slips for batch processing (Thai & English supported)
+        💡 Upload multiple payment slips for batch processing (Thai & English
+        supported)
       </p>
     </div>
   );

@@ -13,11 +13,17 @@ Use this skill when the task belongs to Frong Finance and should be handled as a
 
 Frong Finance is a personal finance web app built with Next.js App Router, TypeScript, Clerk authentication, Supabase, and client-side OCR for Thai payment slips. Core product areas include:
 
-- dashboard summaries and charts
-- transaction CRUD and filtering
-- goal tracking
-- OCR slip upload and parsing
-- auth-protected user flows
+- dashboard summaries, charts, and date-range filtering
+- transaction CRUD, search, filter, and CSV export
+- goal tracking with deadline and progress indicators
+- OCR slip upload and parsing (Tesseract.js, Thai + English, 50 scans/month)
+- monthly budget limits per category with progress visualization (`/limits`)
+- recurring transactions (`/recurring` — scaffolded, not yet implemented)
+- admin role management via Clerk `publicMetadata.isAdmin` (`/admin`)
+- bilingual UI — Thai and English, cookie-driven locale with custom i18n Context
+- user feedback form forwarding to Google Sheets via Apps Script (`/feedback`)
+- auth-protected routes gated by Clerk middleware and `ProtectedRoute`
+- error tracking via Sentry (client, server, and edge configs)
 
 ## How The App Works
 
@@ -25,9 +31,11 @@ At a high level:
 
 1. Users authenticate with Clerk.
 2. Protected dashboard routes load finance data for the signed-in user.
-3. Server actions and Supabase handle transaction, goal, budget, and OCR usage data.
-4. OCR logic parses uploaded payment slips and helps create transactions.
+3. Server actions and Supabase handle transaction, goal, budget, OCR usage, and category data.
+4. OCR logic parses uploaded payment slips and helps create transactions with pre-filled fields.
 5. Dashboard pages render summaries, charts, progress cards, and transaction tables.
+6. Locale is resolved on the server from cookies and passed down via `I18nContext`; all UI text uses `t("key")` from `useI18n()`.
+7. Admin users are identified by `publicMetadata.isAdmin` or the hardcoded default admin email in `src/lib/admin.ts`.
 
 ## Delivery Steps
 
@@ -79,10 +87,19 @@ Implementation rules:
 Typical repo surfaces:
 
 - `src/app/` for routes and layouts
+- `src/app/(dashboard)/` for all authenticated dashboard pages
+- `src/app/api/` for API route handlers (admin, feedback, ai-agent)
 - `src/components/` for UI and dashboard widgets
+- `src/components/layout/` for Navbar, Sidebar, PageShell (responsive shell)
+- `src/components/dashboard/` for StatCard, BudgetProgress, GoalProgress, etc.
 - `src/server-actions/` for data mutations and reads
 - `src/lib/validators/` for Zod schemas
 - `src/lib/ocr/` for OCR parsing logic
+- `src/lib/admin.ts` for admin role helpers and default admin guard
+- `src/lib/i18n.ts` for locale resolution
+- `src/locales/` for translation dictionaries (`en.ts`, `th.ts`)
+- `src/contexts/` for `I18nContext` and `CurrencyContext`
+- `src/config/routes.ts` for sidebar nav item definitions
 - `src/types/` for shared type contracts
 
 ### 4. Test And Validate
@@ -107,6 +124,9 @@ Minimum validation guidance by area:
 - server action change: verify the success path and one failure path
 - OCR change: test with at least one realistic slip image if available
 - schema or config change: run lint and build
+- i18n change: verify both `en.ts` and `th.ts` have the new key; `TranslationKeys` type will catch missing keys at build time
+- admin change: verify both default admin and isAdmin metadata paths
+- API route change: verify auth guard (401 for unauthenticated, 403 for non-admin where applicable)
 
 ### 5. Review For Additional Improvements
 

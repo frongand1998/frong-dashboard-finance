@@ -90,7 +90,7 @@ export default async function RootLayout({
 
   return (
     <ClerkProvider publishableKey={publishableKey}>
-      <html lang={initialLocale}>
+      <html lang={initialLocale} suppressHydrationWarning>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${notoSansThai.variable} bg-surface text-foreground antialiased`}
           suppressHydrationWarning

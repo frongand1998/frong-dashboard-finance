@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/transaction/ImageUpload";
 import { AlertTriangle, Info, Trash2 } from "lucide-react";
+import { ToastContainer, useToast } from "@/components/ui/toast";
 import {
   createTransaction,
   getTransactions,
@@ -33,6 +34,7 @@ const getDefaultFormValues = (): Partial<TransactionFormData> => ({
 export default function AddRecordPage() {
   const router = useRouter();
   const { currency } = useCurrency();
+  const { toasts, toast, dismiss } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -107,8 +109,9 @@ export default function AddRecordPage() {
   const handleImagesSelect = async (files: File[]) => {
     // Check if user has enough OCR scans
     if (ocrUsage && files.length > ocrUsage.remaining) {
-      alert(
+      toast(
         `You only have ${ocrUsage.remaining} OCR scans remaining. Please upload ${ocrUsage.remaining} or fewer images.`,
+        "warning",
       );
       return;
     }
@@ -259,8 +262,9 @@ export default function AddRecordPage() {
       setImagePreviews([]);
       setExtractedTransactions([]);
 
-      alert(
-        `✅ ${successCount} transactions created successfully!${failCount > 0 ? `\n⚠️ ${failCount} failed.` : ""}`,
+      toast(
+        `${successCount} transaction${successCount !== 1 ? "s" : ""} created successfully!${failCount > 0 ? ` (${failCount} failed)` : ""}`,
+        "success",
       );
 
       const transactionsResult = await getTransactions(500, 0);
@@ -324,7 +328,7 @@ export default function AddRecordPage() {
         setImagePreviews([]);
         setExtractedTransactions([]);
 
-        alert("✅ Transaction saved successfully!");
+        toast("Transaction saved successfully!", "success");
 
         const transactionsResult = await getTransactions(500, 0);
         if (transactionsResult.success) {
@@ -342,6 +346,7 @@ export default function AddRecordPage() {
 
   return (
     <PageShell>
+      <ToastContainer toasts={toasts} onDismiss={dismiss} />
       <div className="min-w-0 w-full max-w-2xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Add Transaction</h1>

@@ -8,6 +8,7 @@ export const navItems: { labelKey: string; href: string }[] = [
   { labelKey: "addRecord", href: "/add" },
   { labelKey: "limits", href: "/limits" },
   { labelKey: "goals", href: "/goals" },
+  { labelKey: "recurring", href: "/recurring" },
   { labelKey: "admin", href: "/admin" },
   { labelKey: "aiAgent", href: "/ai-agent" },
   { labelKey: "settings", href: "/settings" },

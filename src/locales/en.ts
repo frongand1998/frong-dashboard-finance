@@ -6,6 +6,7 @@ const en = {
     addRecord: "Add Record",
     limits: "Limits",
     goals: "Goals",
+    recurring: "Recurring",
     admin: "Admin",
     aiAgent: "AI Agent",
     settings: "Settings",
@@ -146,6 +147,37 @@ const en = {
     overdue: "Overdue",
   },
 
+  // Recurring page
+  recurringPage: {
+    title: "Recurring",
+    subtitle: "Automate regular income and expense entries",
+    createTitle: "Create recurring rule",
+    ruleName: "Rule name",
+    ruleNamePlaceholder: "e.g. Monthly Rent",
+    frequency: "Frequency",
+    startDate: "Start date",
+    runNow: "Run now",
+    runDueNow: "Run due rules",
+    noRules: "No recurring rules yet.",
+    nextRun: "Next run",
+    lastRun: "Last run",
+    active: "Active",
+    paused: "Paused",
+    createSuccess: "Recurring rule created.",
+    createFailed: "Failed to create recurring rule.",
+    updateSuccess: "Recurring rule updated.",
+    updateFailed: "Failed to update recurring rule.",
+    deleteConfirm: "Delete this recurring rule?",
+    deleteSuccess: "Recurring rule deleted.",
+    deleteFailed: "Failed to delete recurring rule.",
+    runSuccess: "Recurring transaction created.",
+    runFailed: "Failed to run recurring rule.",
+    runDueSummary: "Processed {rules} rules and created {transactions} transactions.",
+    daily: "Daily",
+    weekly: "Weekly",
+    monthly: "Monthly",
+  },
+
   // Add / Edit Goal
   goalForm: {
     addTitle: "Add Goal",
@@ -219,7 +251,7 @@ const en = {
 
   // Home / Landing page
   home: {
-    brandName: "Your Finance Assistant",
+    brandName: "Know your finance",
     heroTitle: "Your smart personal finance companion",
     heroSubtitle:
       "Track expenses, scan Thai payment slips, and stay on top of your financial goals in one place.",

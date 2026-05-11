@@ -26,12 +26,12 @@
 - [x] Privacy Policy & Terms of Service
 - [x] User documentation
 
-## 🚀 Next Release (v1.1) - Planned for February 2026
+## ✅ Completed (v1.1) - Released May 2026
 
 ### Analytics & Monitoring
 
 - [ ] Google Analytics 4 integration
-- [ ] Error tracking (Sentry)
+- [x] Error tracking (Sentry) — `sentry.{client,server,edge}.config.ts` wired up
 - [ ] User behavior analytics
 - [ ] Performance monitoring (Web Vitals)
 
@@ -51,17 +51,32 @@
 - [ ] Bulk transaction editing
 - [ ] Transaction templates for recurring expenses
 
-## 🎯 Future Releases
+### Added in v1.1 (beyond original plan)
 
-### v1.2 - Budget & Planning (March 2026)
+- [x] Bilingual UI — Thai / English i18n via custom Context + cookie
+- [x] Noto Sans Thai font via Google Fonts
+- [x] Admin role management — Clerk `publicMetadata.isAdmin`, default admin guard
+- [x] Admin UI — user list with checkbox toggle, search, and filter
+- [x] Feedback page — React Hook Form + Zod, forwarded to Google Sheets via Apps Script, anti-spam
+- [x] Budget Limits page (`/limits`) — monthly CRUD, month selector, BudgetProgress component
+- [x] Settings page cleanup — removed duplicate budget section, links to `/limits`
+- [x] Sidebar hides Admin nav item for non-admin users
+- [x] Add page UX — clear form on save, alert on success
+- [x] Responsive polish — PageShell overflow fix, Navbar mobile layout, admin table overflow
 
-- [ ] Monthly budget setting per category
-- [ ] Budget vs actual comparison
+## 🚀 Next Release (v1.2) - In Progress
+
+### Budget & Planning
+
+- [x] Monthly budget setting per category
+- [x] Budget vs actual comparison (BudgetProgress component)
 - [ ] Spending alerts when approaching limits
 - [ ] Budget recommendations based on history
 - [ ] Forecasting future expenses
 
-### v1.3 - Advanced Analytics (April 2026)
+## 🎯 Future Releases
+
+### v1.3 - Advanced Analytics
 
 - [ ] Category breakdown pie charts
 - [ ] Spending trends over time
@@ -70,13 +85,13 @@
 - [ ] Export to PDF reports
 - [ ] Email digest (weekly/monthly summaries)
 
-### v1.4 - Automation (May 2026)
+### v1.4 - Automation & Recurring
 
-- [ ] Recurring transactions (auto-create)
-- [ ] Bank account sync (via Plaid or similar)
+- [ ] Recurring transactions — `/recurring` route scaffolded, page not yet implemented
 - [ ] Automatic categorization via AI
 - [ ] Smart notifications for unusual spending
 - [ ] Bill payment reminders
+- [ ] Bank account sync (via Plaid or similar)
 
 ### v1.5 - Collaboration (June 2026)
 
@@ -102,7 +117,7 @@
 - [ ] Micro-interactions (hover states, loading animations)
 - [ ] Improved data visualization
 - [ ] Accessibility audit (WCAG 2.1 AA)
-- [ ] Multi-language support (Thai, English, more)
+- [x] Multi-language support (Thai, English) — i18n Context with cookie-driven locale switching
 
 ### Performance
 
@@ -183,6 +198,6 @@ Submit your ideas via:
 
 ---
 
-**Last Updated**: January 26, 2026
-**Current Version**: v1.0
-**Next Release**: v1.1 (February 2026)
+**Last Updated**: May 11, 2026
+**Current Version**: v1.1
+**Next Release**: v1.2 (in progress)
