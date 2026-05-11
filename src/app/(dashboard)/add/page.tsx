@@ -792,15 +792,21 @@ export default function AddRecordPage() {
               </p>
             ) : (
               <div className="w-full overflow-x-auto">
-                <table className="w-full table-fixed text-sm">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border text-left text-muted-foreground">
-                      <th className="py-2 pr-4 font-medium">Date</th>
-                      <th className="py-2 pr-4 font-medium">Type</th>
+                      <th className="whitespace-nowrap py-2 pr-4 font-medium">
+                        Date
+                      </th>
+                      <th className="whitespace-nowrap py-2 pr-4 font-medium">
+                        Type
+                      </th>
                       <th className="py-2 pr-4 font-medium">Category</th>
-                      <th className="py-2 pr-4 font-medium">Amount</th>
-                      <th className="w-1/3 py-2 font-medium">Note</th>
-                      <th className="py-2 pl-4 text-right font-medium whitespace-nowrap">
+                      <th className="whitespace-nowrap py-2 pr-4 font-medium">
+                        Amount
+                      </th>
+                      <th className="py-2 font-medium">Note</th>
+                      <th className="whitespace-nowrap py-2 pl-4 text-right font-medium">
                         Action
                       </th>
                     </tr>
@@ -808,18 +814,20 @@ export default function AddRecordPage() {
                   <tbody>
                     {historyTransactions.map((tx) => (
                       <tr key={tx.id} className="border-b border-border/50">
-                        <td className="py-2 pr-4 whitespace-nowrap">
+                        <td className="whitespace-nowrap py-2 pr-4">
                           {formatDate(tx.date)}
                         </td>
-                        <td className="py-2 pr-4 capitalize">{tx.type}</td>
+                        <td className="whitespace-nowrap py-2 pr-4 capitalize">
+                          {tx.type}
+                        </td>
                         <td className="py-2 pr-4">{tx.category}</td>
                         <td
-                          className={`py-2 pr-4 font-medium whitespace-nowrap ${tx.type === "income" ? "text-success" : "text-danger"}`}
+                          className={`whitespace-nowrap py-2 pr-4 font-medium ${tx.type === "income" ? "text-success" : "text-danger"}`}
                         >
                           {tx.type === "income" ? "+" : "-"}
                           {formatCurrency(tx.amount, currency.code)}
                         </td>
-                        <td className="py-2 text-muted-foreground wrap-break-word">
+                        <td className="py-2 text-muted-foreground">
                           {tx.note || "-"}
                         </td>
                         <td className="py-2 pl-4 text-right">
