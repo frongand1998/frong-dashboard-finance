@@ -248,6 +248,232 @@ export default function TransactionsPage() {
     document.body.removeChild(link);
   };
 
+  const handleExportPDF = async () => {
+    if (transactions.length === 0) return;
+
+    const normalizePdfText = (value?: string) => {
+      if (!value) return "-";
+      // jsPDF Helvetica only supports latin-1; strip anything outside that range
+      // to prevent garbled/missing characters in the exported PDF.
+      return (
+        value
+          .normalize("NFKC")
+          .replace(/[\u0100-\uFFFF]/g, "") // remove non-latin-1 unicode
+          .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ") // control chars → space
+          .replace(/[\u200B-\u200D\uFEFF]/g, "") // zero-width chars
+          .replace(/\s{2,}/g, " ")
+          .trim() || "-"
+      );
+    };
+
+    try {
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import("jspdf"),
+        import("jspdf-autotable"),
+      ]);
+
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const marginX = 40;
+      const generatedAt = new Date();
+      const sortedTransactions = [...transactions].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
+
+      const totalIncome = transactions
+        .filter((tx) => tx.type === "income")
+        .reduce((sum, tx) => sum + tx.amount, 0);
+      const totalExpenses = transactions
+        .filter((tx) => tx.type === "expense")
+        .reduce((sum, tx) => sum + tx.amount, 0);
+      const netAmount = totalIncome - totalExpenses;
+
+      const reportStartDate =
+        startDate || sortedTransactions[0]?.date || generatedAt.toISOString();
+      const reportEndDate =
+        endDate ||
+        sortedTransactions[sortedTransactions.length - 1]?.date ||
+        generatedAt.toISOString();
+
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, pageWidth, 92, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("FRONG FINANCE", marginX, 36);
+      doc.setFontSize(14);
+      doc.text("Your transaction", marginX, 60);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(
+        `Generated: ${generatedAt.toLocaleString("en-GB")}`,
+        pageWidth - marginX,
+        36,
+        { align: "right" },
+      );
+      doc.text(`Currency: ${currency.code}`, pageWidth - marginX, 52, {
+        align: "right",
+      });
+      doc.text(`Records: ${transactions.length}`, pageWidth - marginX, 68, {
+        align: "right",
+      });
+
+      doc.setTextColor(17, 24, 39);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("Statement Period", marginX, 120);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(
+        `${new Date(reportStartDate).toLocaleDateString("en-GB")} - ${new Date(reportEndDate).toLocaleDateString("en-GB")}`,
+        marginX,
+        136,
+      );
+
+      const summaryCards = [
+        {
+          title: "Total Income",
+          amount: formatCurrency(totalIncome, currency.code),
+          border: [22, 163, 74] as const,
+        },
+        {
+          title: "Total Expenses",
+          amount: formatCurrency(totalExpenses, currency.code),
+          border: [220, 38, 38] as const,
+        },
+        {
+          title: "Net Balance",
+          amount: formatCurrency(Math.abs(netAmount), currency.code),
+          border:
+            netAmount >= 0
+              ? ([22, 163, 74] as const)
+              : ([220, 38, 38] as const),
+          prefix: netAmount >= 0 ? "+" : "-",
+        },
+      ];
+
+      const cardGap = 12;
+      const cardWidth = (pageWidth - marginX * 2 - cardGap * 2) / 3;
+      const cardY = 154;
+      const cardHeight = 58;
+
+      summaryCards.forEach((card, index) => {
+        const x = marginX + index * (cardWidth + cardGap);
+        doc.setDrawColor(card.border[0], card.border[1], card.border[2]);
+        doc.setLineWidth(1.2);
+        doc.roundedRect(x, cardY, cardWidth, cardHeight, 6, 6);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(75, 85, 99);
+        doc.text(card.title, x + 10, cardY + 18);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(17, 24, 39);
+        doc.text(`${card.prefix || ""}${card.amount}`, x + 10, cardY + 40);
+      });
+
+      autoTable(doc, {
+        startY: cardY + cardHeight + 20,
+        margin: { left: marginX, right: marginX, bottom: 46 },
+        head: [["Date", "Type", "Category", "Note", "Amount"]],
+        body: sortedTransactions.map((tx) => [
+          new Date(tx.date).toLocaleDateString("en-GB"),
+          tx.type === "income" ? "Income" : "Expense",
+          normalizePdfText(tx.category),
+          normalizePdfText(tx.note),
+          `${tx.type === "income" ? "+" : "-"}${formatCurrency(tx.amount, currency.code)}`,
+        ]),
+        theme: "grid",
+        styles: {
+          font: "helvetica",
+          fontSize: 9,
+          textColor: [31, 41, 55],
+          lineColor: [229, 231, 235],
+          lineWidth: 0.6,
+          cellPadding: 6,
+          valign: "middle",
+        },
+        headStyles: {
+          fillColor: [30, 41, 59],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          fontSize: 9,
+        },
+        alternateRowStyles: {
+          fillColor: [249, 250, 251],
+        },
+        columnStyles: {
+          0: { cellWidth: 70 },
+          1: { cellWidth: 60 },
+          2: { cellWidth: 100 },
+          3: { cellWidth: "auto" },
+          4: { cellWidth: 110, halign: "right" },
+        },
+        didParseCell: (data) => {
+          if (data.section === "body" && data.column.index === 1) {
+            const type = String(data.cell.raw).toLowerCase();
+            if (type === "income") {
+              data.cell.styles.textColor = [22, 163, 74];
+            }
+            if (type === "expense") {
+              data.cell.styles.textColor = [220, 38, 38];
+            }
+          }
+          if (data.section === "body" && data.column.index === 4) {
+            const amount = String(data.cell.raw);
+            if (amount.startsWith("+")) {
+              data.cell.styles.textColor = [22, 163, 74];
+            }
+            if (amount.startsWith("-")) {
+              data.cell.styles.textColor = [220, 38, 38];
+            }
+          }
+        },
+      });
+
+      const docWithTable = doc as typeof doc & {
+        lastAutoTable?: { finalY?: number };
+      };
+      const noteY = docWithTable.lastAutoTable?.finalY
+        ? docWithTable.lastAutoTable.finalY + 20
+        : cardY + cardHeight + 40;
+      const pageHeight = doc.internal.pageSize.getHeight();
+      if (noteY < pageHeight - 54) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(107, 114, 128);
+        doc.text(
+          "This statement is generated digitally from Frong Finance transaction records.",
+          marginX,
+          noteY,
+        );
+      }
+
+      const pageCount = doc.getNumberOfPages();
+      for (let page = 1; page <= pageCount; page += 1) {
+        doc.setPage(page);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(107, 114, 128);
+        doc.text(
+          `Page ${page} of ${pageCount}`,
+          pageWidth - marginX,
+          pageHeight - 24,
+          { align: "right" },
+        );
+      }
+
+      doc.save(
+        `transaction_statement_${new Date().toISOString().split("T")[0]}.pdf`,
+      );
+    } catch {
+      setError("Failed to export PDF. Please try again.");
+    }
+  };
+
   const handleDeleteAll = async () => {
     setIsDeleting(true);
     setError(null);
@@ -306,14 +532,24 @@ export default function TransactionsPage() {
           </div>
           <div className="flex flex-wrap gap-2 items-center justify-start sm:justify-end">
             {transactions.length > 0 && (
-              <Button
-                variant="ghost"
-                onClick={handleExportCSV}
-                className="text-accent hover:bg-accent/10"
-              >
-                <Download className="w-4 h-4 mr-1.5" />
-                {t.transactions.exportCSV}
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={handleExportPDF}
+                  className="text-accent hover:bg-accent/10"
+                >
+                  <Download className="w-4 h-4 mr-1.5" />
+                  {t.transactions.exportPDF}
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={handleExportCSV}
+                  className="text-accent hover:bg-accent/10"
+                >
+                  <Download className="w-4 h-4 mr-1.5" />
+                  {t.transactions.exportCSV}
+                </Button>
+              </>
             )}
             {allTransactions.length > 0 && (
               <Button

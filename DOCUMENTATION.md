@@ -246,6 +246,21 @@ Date,Type,Category,Amount,Note
 - Budget analysis
 - Accounting software integration
 
+### PDF Statement Export
+
+**Format:**
+
+- A4 PDF statement layout
+- Header with generation timestamp and currency
+- Statement period and totals (income, expenses, net)
+- Multi-page transaction table with page numbers
+
+**Uses:**
+
+- Bank document submission
+- Loan application supporting records
+- Official monthly spending summary
+
 ### Search Features
 
 **Instant filtering:**
@@ -281,7 +296,7 @@ THB (Thai Baht), USD (US Dollar), EUR (Euro), and more via Settings.
 
 ### Can I export my data?
 
-Yes! Use the "Export CSV" button on the Transactions page.
+Yes! Use the "Export PDF (Statement)" or "Export CSV" button on the Transactions page.
 
 ### What if OCR makes a mistake?
 

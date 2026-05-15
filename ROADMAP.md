@@ -13,6 +13,7 @@
 - [x] Dashboard with income/expense charts
 - [x] Search & filter transactions
 - [x] CSV export
+- [x] PDF statement export
 - [x] Multi-currency support (THB, USD, EUR)
 - [x] Responsive mobile-first design
 

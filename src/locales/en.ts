@@ -91,6 +91,7 @@ const en = {
   transactions: {
     title: "Transactions",
     searchPlaceholder: "Search by note or category…",
+    exportPDF: "Export PDF (Statement)",
     exportCSV: "Export CSV",
     noResults: "No transactions found.",
     deleteConfirm: "Delete this transaction?",

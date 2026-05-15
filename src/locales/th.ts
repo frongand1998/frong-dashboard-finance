@@ -92,6 +92,7 @@ const th: TranslationKeys = {
   transactions: {
     title: "รายการธุรกรรม",
     searchPlaceholder: "ค้นหาตามหมายเหตุหรือหมวดหมู่…",
+    exportPDF: "ส่งออก PDF (Statement)",
     exportCSV: "ส่งออก CSV",
     noResults: "ไม่พบธุรกรรม",
     deleteConfirm: "ลบธุรกรรมนี้?",
