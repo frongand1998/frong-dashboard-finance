@@ -4,6 +4,9 @@ const th: TranslationKeys = {
   // Navigation
   nav: {
     dashboard: "แดชบอร์ด",
+    investmentSnapshot: "ภาพรวมการลงทุน",
+    dcaPlanner: "วางแผน DCA",
+    goalBasedInvesting: "ลงทุนตามเป้าหมาย",
     transactions: "รายการธุรกรรม",
     addRecord: "เพิ่มรายการ",
     limits: "วงเงิน",
@@ -133,6 +136,7 @@ const th: TranslationKeys = {
   goals: {
     title: "เป้าหมาย",
     addGoal: "เพิ่มเป้าหมาย",
+    openInvestmentPlanner: "เปิดหน้าลงทุนตามเป้าหมาย",
     noGoals: "ยังไม่มีเป้าหมาย สร้างเป้าหมายแรกของคุณ!",
     targetAmount: "จำนวนเป้าหมาย",
     currentAmount: "จำนวนปัจจุบัน",
@@ -239,6 +243,53 @@ const th: TranslationKeys = {
     suggestedPrompts: "คำถามแนะนำ",
     thinking: "กำลังคิด…",
     errorMessage: "ไม่สามารถรับคำตอบได้ กรุณาลองใหม่",
+  },
+
+  // Investment pages
+  investment: {
+    snapshotTitle: "ภาพรวมการลงทุน",
+    snapshotSubtitle: "สรุปภาพรวมกระแสเงินลงทุนและสัดส่วนพอร์ตของคุณ",
+    totalInvested: "เงินลงทุนสะสม",
+    realizedReturns: "ผลตอบแทนที่รับรู้แล้ว",
+    netCostBasis: "ต้นทุนสุทธิ",
+    investedThisMonth: "ลงทุนเดือนนี้",
+    allocationMix: "สัดส่วนการลงทุน",
+    noInvestmentData:
+      "ยังไม่มีธุรกรรมการลงทุน ลองตั้งชื่อหมวดหมู่เช่น stock, fund หรือ crypto เพื่อให้ระบบจัดกลุ่มได้",
+    dataNotes: "หมายเหตุข้อมูล",
+    dataNoteDescription:
+      "หน้านี้อนุมานธุรกรรมลงทุนจากชื่อหมวดหมู่ เพื่อความแม่นยำควรตั้งชื่อหมวดหมู่ให้สม่ำเสมอ",
+    detectedEntries: "รายการที่ตรวจพบ",
+    transactionsLabel: "รายการ",
+    dcaTitle: "วางแผน DCA",
+    dcaSubtitle: "จำลองผลลัพธ์การลงทุนแบบทยอยรายเดือนในระยะยาว",
+    planInputs: "ค่าที่ใช้คำนวณ",
+    initialInvestment: "เงินก้อนเริ่มต้น",
+    monthlyDcaAmount: "เงิน DCA ต่อเดือน",
+    expectedAnnualReturn: "ผลตอบแทนคาดหวังต่อปี (%)",
+    investmentHorizonYears: "ระยะเวลาลงทุน (ปี)",
+    futureValue: "มูลค่าในอนาคต",
+    totalContributions: "เงินต้นที่ใส่รวม",
+    estimatedGain: "กำไรโดยประมาณ",
+    yearlyProjection: "ประมาณการรายปี",
+    yearLabel: "ปีที่",
+    goalBasedTitle: "ลงทุนตามเป้าหมาย",
+    goalBasedSubtitle:
+      "แปลงเป้าหมายการเงินของคุณให้เป็นแผนลงทุนรายเดือนที่ทำได้จริง",
+    monthlyRequired: "ยอดที่ต้องลงทุนต่อเดือน",
+    avgMonthlySurplus: "เงินเหลือเฉลี่ยต่อเดือน",
+    suggestedInvestBudget: "งบลงทุนที่แนะนำ",
+    planStatus: "สถานะแผน",
+    onTrack: "เป็นไปตามแผน",
+    needsAdjustment: "ควรปรับแผน",
+    perGoalMonthlyPlan: "แผนรายเดือนรายเป้าหมาย",
+    noGoalsPlan: "ยังไม่มีเป้าหมาย กรุณาเพิ่มเป้าหมายอย่างน้อย 1 รายการ",
+    remainingOf: "คงเหลือ",
+    ofLabel: "จาก",
+    requiredPerMonth: "ต้องลงทุน / เดือน",
+    monthsLeft: "เดือนที่เหลือ",
+    completed: "สำเร็จแล้ว",
+    urgentTimeline: "ระยะเวลาเร่งด่วน",
   },
 
   // Auth pages

@@ -71,9 +71,14 @@ export default function GoalsPage() {
               Set and track your financial targets
             </p>
           </div>
-          <Link href="/add-goal">
-            <Button variant="primary">Add Goal</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/goal-based-investing">
+              <Button variant="soft">{t.goals.openInvestmentPlanner}</Button>
+            </Link>
+            <Link href="/add-goal">
+              <Button variant="primary">Add Goal</Button>
+            </Link>
+          </div>
         </div>
 
         {/* Error Message */}

@@ -2,6 +2,9 @@ const en = {
   // Navigation
   nav: {
     dashboard: "Dashboard",
+    investmentSnapshot: "Investment Snapshot",
+    dcaPlanner: "DCA Planner",
+    goalBasedInvesting: "Goal-based Investing",
     transactions: "Transactions",
     addRecord: "Add Record",
     limits: "Limits",
@@ -132,6 +135,7 @@ const en = {
   goals: {
     title: "Goals",
     addGoal: "Add Goal",
+    openInvestmentPlanner: "Open Goal-based Investing",
     noGoals: "No goals yet. Create your first goal!",
     targetAmount: "Target Amount",
     currentAmount: "Current Amount",
@@ -173,7 +177,8 @@ const en = {
     deleteFailed: "Failed to delete recurring rule.",
     runSuccess: "Recurring transaction created.",
     runFailed: "Failed to run recurring rule.",
-    runDueSummary: "Processed {rules} rules and created {transactions} transactions.",
+    runDueSummary:
+      "Processed {rules} rules and created {transactions} transactions.",
     daily: "Daily",
     weekly: "Weekly",
     monthly: "Monthly",
@@ -226,7 +231,8 @@ const en = {
     limitSingle: "limit",
     limitPlural: "limits",
     openLimitsPage: "Open limits page",
-    openLimitsDescription: "Manage monthly spending limits in a dedicated page.",
+    openLimitsDescription:
+      "Manage monthly spending limits in a dedicated page.",
     language: "Language",
     languageDescription: "Select your preferred language",
   },
@@ -240,6 +246,55 @@ const en = {
     suggestedPrompts: "Suggested Prompts",
     thinking: "Thinking…",
     errorMessage: "Failed to get response. Please try again.",
+  },
+
+  // Investment pages
+  investment: {
+    snapshotTitle: "Investment Snapshot",
+    snapshotSubtitle:
+      "Quick overview of your investment cash flow and allocation.",
+    totalInvested: "Total Invested",
+    realizedReturns: "Realized Returns",
+    netCostBasis: "Net Cost Basis",
+    investedThisMonth: "Invested This Month",
+    allocationMix: "Allocation Mix",
+    noInvestmentData:
+      "No investment transactions yet. Tag categories like stock, fund, or crypto to populate this section.",
+    dataNotes: "Data Notes",
+    dataNoteDescription:
+      "This page infers investment activity from transaction category names. For best accuracy, use consistent category naming for assets.",
+    detectedEntries: "Detected entries",
+    transactionsLabel: "transactions",
+    dcaTitle: "DCA Planner",
+    dcaSubtitle: "Simulate how monthly investing grows over time.",
+    planInputs: "Plan Inputs",
+    initialInvestment: "Initial Investment",
+    monthlyDcaAmount: "Monthly DCA Amount",
+    expectedAnnualReturn: "Expected Annual Return (%)",
+    investmentHorizonYears: "Investment Horizon (Years)",
+    futureValue: "Future Value",
+    totalContributions: "Total Contributions",
+    estimatedGain: "Estimated Gain",
+    yearlyProjection: "Yearly Projection",
+    yearLabel: "Year",
+    goalBasedTitle: "Goal-based Investing",
+    goalBasedSubtitle:
+      "Turn your financial goals into actionable monthly investment plans.",
+    monthlyRequired: "Monthly Required",
+    avgMonthlySurplus: "Avg Monthly Surplus",
+    suggestedInvestBudget: "Suggested Invest Budget",
+    planStatus: "Plan Status",
+    onTrack: "On Track",
+    needsAdjustment: "Needs Adjustment",
+    perGoalMonthlyPlan: "Per-goal Monthly Plan",
+    noGoalsPlan:
+      "No goals yet. Add at least one financial goal to generate a plan.",
+    remainingOf: "Remaining",
+    ofLabel: "of",
+    requiredPerMonth: "Required / month",
+    monthsLeft: "months left",
+    completed: "Completed",
+    urgentTimeline: "Urgent timeline",
   },
 
   // Auth pages
@@ -346,7 +401,8 @@ const en = {
     categoryUx: "UI/UX",
     categoryOther: "Other",
     messageLabel: "Message",
-    messagePlaceholder: "What happened, what you expected, or what you'd like us to add",
+    messagePlaceholder:
+      "What happened, what you expected, or what you'd like us to add",
     submit: "Send feedback",
     submitting: "Sending...",
     successMessage: "Thanks! Your feedback has been sent.",

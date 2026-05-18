@@ -19,11 +19,20 @@ export type SupabaseDatabase = {
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let supabase: ReturnType<typeof createClient<SupabaseDatabase>> | null = null;
 
-if (supabaseUrl && supabaseAnonKey) {
-  supabase = createClient<SupabaseDatabase>(supabaseUrl, supabaseAnonKey);
+if (supabaseUrl) {
+  const isServer = typeof window === "undefined";
+  const key =
+    isServer && supabaseServiceRoleKey
+      ? supabaseServiceRoleKey
+      : supabaseAnonKey;
+
+  if (key) {
+    supabase = createClient<SupabaseDatabase>(supabaseUrl, key);
+  }
 }
 
 export { supabase };
