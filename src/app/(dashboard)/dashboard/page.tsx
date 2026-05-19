@@ -147,6 +147,46 @@ export default function DashboardPage() {
   const net = summary.income - summary.expenses;
   const savingsRate = summary.income > 0 ? (net / summary.income) * 100 : 0;
 
+  const budgetAlerts = useMemo(() => {
+    const rows = budgets
+      .map((budget) => {
+        const matchedSpend = budgetSpends.find(
+          (item) =>
+            item.category.toLowerCase() === budget.category.toLowerCase(),
+        );
+        const spent = matchedSpend?.expense ?? 0;
+        const limit = budget.limit_amount || 0;
+        const pct = limit > 0 ? (spent / limit) * 100 : spent > 0 ? 100 : 0;
+        const overflow = Math.max(spent - limit, 0);
+
+        return {
+          ...budget,
+          spent,
+          pct,
+          overflow,
+          remaining: Math.max(limit - spent, 0),
+          isOver: overflow > 0,
+          isNear: overflow === 0 && pct >= 75,
+        };
+      })
+      .filter((row) => row.isOver || row.isNear)
+      .sort((a, b) => {
+        if (a.isOver && !b.isOver) return -1;
+        if (!a.isOver && b.isOver) return 1;
+        return b.pct - a.pct;
+      });
+
+    return {
+      rows,
+      overBudgetCount: rows.filter((row) => row.isOver).length,
+      nearLimitCount: rows.filter((row) => row.isNear).length,
+      totalOverAmount: rows.reduce(
+        (sum, row) => sum + (row.isOver ? row.overflow : 0),
+        0,
+      ),
+    };
+  }, [budgets, budgetSpends]);
+
   // Categorised expense breakdown for insights
   const expenseInsights = useMemo(() => {
     const expenseCats = (
@@ -679,6 +719,151 @@ export default function DashboardPage() {
           </Card>
         )}
 
+        {/* Budget Alert Center */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <CardTitle>{t.dashboard.budgetAlertCenter}</CardTitle>
+                <CardDescription>
+                  {loading
+                    ? t.common.loading
+                    : budgetAlerts.rows.length > 0
+                      ? `${budgetAlerts.rows.length} ${t.dashboard.budgetAlertSummary}`
+                      : t.dashboard.noBudgetAlerts}
+                </CardDescription>
+              </div>
+              <Button
+                variant="ghost"
+                className="text-xs"
+                onClick={() => router.push("/settings#budgets")}
+              >
+                {t.dashboard.manageBudgets}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loading ? (
+              <>
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+              </>
+            ) : budgetAlerts.rows.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center">
+                <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-success" />
+                <p className="text-sm font-medium text-foreground">
+                  {t.dashboard.budgetAlertsClear}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t.dashboard.budgetAlertsClearHint}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <AlertStat
+                    label={t.dashboard.overBudget}
+                    value={budgetAlerts.overBudgetCount}
+                    hint={
+                      budgetAlerts.totalOverAmount > 0
+                        ? formatCurrency(
+                            budgetAlerts.totalOverAmount,
+                            currency.code,
+                          )
+                        : "-"
+                    }
+                    tone="danger"
+                    icon={<AlertTriangle className="h-4 w-4" />}
+                  />
+                  <AlertStat
+                    label={t.dashboard.nearLimit}
+                    value={budgetAlerts.nearLimitCount}
+                    hint={t.dashboard.nearLimitHint}
+                    tone="warning"
+                    icon={<AlertTriangle className="h-4 w-4" />}
+                  />
+                  <AlertStat
+                    label={t.dashboard.budgetCount}
+                    value={budgets.length}
+                    hint={t.dashboard.currentMonth}
+                    tone="success"
+                    icon={<CheckCircle2 className="h-4 w-4" />}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  {budgetAlerts.rows.map((row) => {
+                    const isOver = row.isOver;
+                    return (
+                      <div
+                        key={row.id}
+                        className={`rounded-xl border p-4 ${
+                          isOver
+                            ? "border-danger/30 bg-danger/5"
+                            : "border-warning/30 bg-warning/5"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-2 min-w-0">
+                            <div
+                              className={`mt-0.5 rounded-full p-1.5 ${
+                                isOver
+                                  ? "bg-danger/15 text-danger"
+                                  : "bg-warning/15 text-warning"
+                              }`}
+                            >
+                              <AlertTriangle className="h-3.5 w-3.5" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-semibold text-foreground">
+                                  {row.category}
+                                </p>
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${isOver ? "bg-danger text-white" : "bg-warning text-white"}`}
+                                >
+                                  {isOver
+                                    ? t.dashboard.overBudget
+                                    : t.dashboard.nearLimit}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {formatCurrency(row.spent, currency.code)} /{" "}
+                                {formatCurrency(
+                                  row.limit_amount,
+                                  currency.code,
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p
+                              className={`text-sm font-bold ${isOver ? "text-danger" : "text-warning"}`}
+                            >
+                              {Math.min(row.pct, 999).toFixed(0)}%
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {isOver
+                                ? `${formatCurrency(row.overflow, currency.code)} over`
+                                : `${formatCurrency(row.remaining, currency.code)} left`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+                          <div
+                            className={`h-full rounded-full ${isOver ? "bg-danger" : "bg-warning"}`}
+                            style={{ width: `${Math.min(row.pct, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
           {/* Budget Limits */}
           <Card>
@@ -774,5 +959,38 @@ export default function DashboardPage() {
         </div>
       </div>
     </PageShell>
+  );
+}
+
+function AlertStat({
+  label,
+  value,
+  hint,
+  tone,
+  icon,
+}: {
+  label: string;
+  value: number;
+  hint: string;
+  tone: "danger" | "warning" | "success";
+  icon: React.ReactNode;
+}) {
+  const toneClassMap = {
+    danger: "border-danger/20 bg-danger/5 text-danger",
+    warning: "border-warning/20 bg-warning/5 text-warning",
+    success: "border-success/20 bg-success/5 text-success",
+  } as const;
+
+  return (
+    <div className={`rounded-xl border p-4 ${toneClassMap[tone]}`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-white/60 p-1.5">{icon}</span>
+          <span className="text-xs font-medium">{label}</span>
+        </div>
+        <span className="text-2xl font-bold tabular-nums">{value}</span>
+      </div>
+      <p className="mt-2 text-xs opacity-80">{hint}</p>
+    </div>
   );
 }

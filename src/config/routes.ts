@@ -7,6 +7,7 @@ export const navItems: { labelKey: string; href: string }[] = [
   { labelKey: "investmentSnapshot", href: "/investment-snapshot" },
   { labelKey: "dcaPlanner", href: "/dca-planner" },
   { labelKey: "goalBasedInvesting", href: "/goal-based-investing" },
+  { labelKey: "analytics", href: "/analytics" },
   { labelKey: "transactions", href: "/transactions" },
   { labelKey: "addRecord", href: "/add" },
   { labelKey: "limits", href: "/limits" },
