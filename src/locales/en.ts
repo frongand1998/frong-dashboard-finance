@@ -58,6 +58,7 @@ const en = {
     reset: "Reset",
     currency: "Currency",
     welcome: "Welcome",
+    total: "Total",
   },
 
   // Transaction types

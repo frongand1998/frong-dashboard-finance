@@ -1,7 +1,9 @@
-'use client';
+"use client";
 
-import ReactECharts from 'echarts-for-react';
-import { formatCurrency } from '@/lib/utils';
+import ReactECharts from "echarts-for-react";
+import { useI18n } from "@/contexts/I18nContext";
+import { matchCategoryNameKey } from "@/lib/categoryMatcher";
+import { formatCurrency } from "@/lib/utils";
 
 type CategoryData = {
   category: string;
@@ -12,7 +14,7 @@ type CategoryData = {
 
 export function CategoryTiles({
   categories,
-  currencyCode = 'USD',
+  currencyCode = "USD",
   showAll = false,
   onCategoryClick,
 }: {
@@ -21,45 +23,49 @@ export function CategoryTiles({
   showAll?: boolean;
   onCategoryClick?: (category: string) => void;
 }) {
+  const { t } = useI18n();
+
   if (categories.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        No category data available
+        {t.common.noData}
       </div>
     );
   }
 
   const CATEGORY_STYLES: Record<string, { icon: string; color: string }> = {
-    'food & dining': { icon: '🍔', color: '#f59e0b' },
-    groceries: { icon: '🛒', color: '#10b981' },
-    transportation: { icon: '🚗', color: '#3b82f6' },
-    shopping: { icon: '🛍️', color: '#ec4899' },
-    entertainment: { icon: '🎮', color: '#8b5cf6' },
-    healthcare: { icon: '🩺', color: '#ef4444' },
-    utilities: { icon: '💡', color: '#f97316' },
-    salary: { icon: '💰', color: '#22c55e' },
-    investment: { icon: '📈', color: '#14b8a6' },
-    education: { icon: '🎓', color: '#6366f1' },
-    gift: { icon: '🎁', color: '#f43f5e' },
-    donation: { icon: '🎁', color: '#f43f5e' },
-    savingfund: { icon: '🏦', color: '#0ea5e9' },
-    yarisscross: { icon: '🚘', color: '#f97316' },
-    termgame: { icon: '🎮', color: '#8b5cf6' },
-    bts: { icon: '🚇', color: '#3b82f6' },
-    oil: { icon: '⛽', color: '#ef4444' },
-    shopee: { icon: '🛍️', color: '#f97316' },
-    parking: { icon: '🅿️', color: '#64748b' },
-    uncategorized: { icon: '📌', color: '#94a3b8' },
+    food: { icon: "🍔", color: "#f59e0b" },
+    transport: { icon: "🚗", color: "#3b82f6" },
+    housing: { icon: "🏠", color: "#0ea5e9" },
+    utilities: { icon: "💡", color: "#f97316" },
+    shopping: { icon: "🛍️", color: "#ec4899" },
+    entertainment: { icon: "🎮", color: "#8b5cf6" },
+    healthcare: { icon: "🩺", color: "#ef4444" },
+    salary: { icon: "💰", color: "#22c55e" },
+    investment: { icon: "📈", color: "#14b8a6" },
+    education: { icon: "🎓", color: "#6366f1" },
+    bills: { icon: "🧾", color: "#64748b" },
+    insurance: { icon: "🛡️", color: "#2563eb" },
+    tax: { icon: "🏛️", color: "#334155" },
+    savings: { icon: "🏦", color: "#0ea5e9" },
+    travel: { icon: "✈️", color: "#06b6d4" },
+    uncategorized: { icon: "📌", color: "#94a3b8" },
+  };
+
+  const getDisplayCategory = (category: string) => {
+    const raw = category.trim();
+    const key = matchCategoryNameKey(raw);
+    if (key === "uncategorized" && raw) return raw;
+    return t.analytics.categoryNames[key];
   };
 
   const getCategoryStyle = (category: string) => {
-    const name = category.toLowerCase();
-    const key = Object.keys(CATEGORY_STYLES).find((k) => name.includes(k));
-    return key ? CATEGORY_STYLES[key] : { icon: '📌', color: '#94a3b8' };
+    const key = matchCategoryNameKey(category);
+    return CATEGORY_STYLES[key] ?? CATEGORY_STYLES.uncategorized;
   };
 
   const isLightColor = (hex: string) => {
-    const cleaned = hex.replace('#', '');
+    const cleaned = hex.replace("#", "");
     const r = parseInt(cleaned.substring(0, 2), 16);
     const g = parseInt(cleaned.substring(2, 4), 16);
     const b = parseInt(cleaned.substring(4, 6), 16);
@@ -71,7 +77,8 @@ export function CategoryTiles({
   const treemapData = displayCategories.map((cat) => {
     const style = getCategoryStyle(cat.category);
     return {
-      name: cat.category,
+      name: getDisplayCategory(cat.category),
+      rawCategory: cat.category,
       value: cat.total,
       income: cat.income,
       expense: cat.expense,
@@ -79,7 +86,7 @@ export function CategoryTiles({
         color: style.color,
       },
       label: {
-        color: isLightColor(style.color) ? '#0f172a' : '#ffffff',
+        color: isLightColor(style.color) ? "#0f172a" : "#ffffff",
       },
     };
   });
@@ -93,34 +100,36 @@ export function CategoryTiles({
         return `
           <div style="display:flex;flex-direction:column;gap:6px;min-width:160px;">
             <strong>${params.name}</strong>
-            <div>Total: ${formatCurrency(value, currencyCode)}</div>
-            <div style="color:#10b981;">Income: ${formatCurrency(income, currencyCode)}</div>
-            <div style="color:#ef4444;">Expenses: ${formatCurrency(expense, currencyCode)}</div>
+            <div>${t.common.total}: ${formatCurrency(value, currencyCode)}</div>
+            <div style="color:#10b981;">${t.transactionType.income}: ${formatCurrency(income, currencyCode)}</div>
+            <div style="color:#ef4444;">${t.transactionType.expense}: ${formatCurrency(expense, currencyCode)}</div>
           </div>
         `;
       },
-      backgroundColor: 'rgba(255,255,255,0.95)',
-      borderColor: '#e2e8f0',
+      backgroundColor: "rgba(255,255,255,0.95)",
+      borderColor: "#e2e8f0",
       borderWidth: 1,
-      textStyle: { color: '#0f172a', fontSize: 12 },
+      textStyle: { color: "#0f172a", fontSize: 12 },
     },
     series: [
       {
-        type: 'treemap',
+        type: "treemap",
         data: treemapData,
         roam: true,
         nodeClick: false,
         breadcrumb: { show: false },
         upperLabel: { show: false },
         itemStyle: {
-          borderColor: '#ffffff',
+          borderColor: "#ffffff",
           borderWidth: 2,
           gapWidth: 2,
         },
         label: {
           show: true,
           formatter: (params: any) => {
-            const icon = getCategoryStyle(params.name || '').icon;
+            const icon = getCategoryStyle(
+              params.data?.rawCategory || params.name || "",
+            ).icon;
             const income = params.data?.income ?? 0;
             const expense = params.data?.expense ?? 0;
             const net = income - expense;
@@ -128,9 +137,9 @@ export function CategoryTiles({
             const expenseText = formatCurrency(expense, currencyCode);
             const netText = formatCurrency(Math.abs(net), currencyCode);
             const netLabel = net >= 0 ? `+${netText}` : `-${netText}`;
-            return `${icon} ${params.name}\n↑ ${incomeText}  ↓ ${expenseText}\nNet ${netLabel}`;
+            return `${icon} ${params.name}\n↑ ${incomeText}  ↓ ${expenseText}\n${t.dashboard.netBalance} ${netLabel}`;
           },
-          overflow: 'truncate',
+          overflow: "truncate",
         },
       },
     ],
@@ -139,7 +148,7 @@ export function CategoryTiles({
   const onEvents = onCategoryClick
     ? {
         click: (params: any) => {
-          const category = params?.name;
+          const category = params?.data?.rawCategory || params?.name;
           if (category) {
             onCategoryClick(category);
           }
@@ -149,7 +158,11 @@ export function CategoryTiles({
 
   return (
     <div className="h-[420px]">
-      <ReactECharts option={option} style={{ height: '100%', width: '100%' }} onEvents={onEvents} />
+      <ReactECharts
+        option={option}
+        style={{ height: "100%", width: "100%" }}
+        onEvents={onEvents}
+      />
     </div>
   );
 }

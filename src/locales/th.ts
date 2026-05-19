@@ -60,6 +60,7 @@ const th: TranslationKeys = {
     reset: "รีเซ็ต",
     currency: "สกุลเงิน",
     welcome: "ยินดีต้อนรับ",
+    total: "รวม",
   },
 
   // Transaction types

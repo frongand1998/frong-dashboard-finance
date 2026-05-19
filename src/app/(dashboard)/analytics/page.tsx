@@ -6,6 +6,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
+import { matchCategoryNameKey } from "@/lib/categoryMatcher";
 import { getCategorySummary } from "@/server-actions/categories";
 import {
   getMonthlyTrend,
@@ -104,54 +105,6 @@ const PALETTE = [
   "#64748b",
 ];
 
-const CATEGORY_ALIAS_MAP = [
-  {
-    key: "uncategorized",
-    aliases: ["uncategorized", "uncategorised", "other", "misc"],
-  },
-  { key: "food", aliases: ["food", "dining", "restaurant", "meal", "grocery"] },
-  {
-    key: "transport",
-    aliases: [
-      "transport",
-      "transportation",
-      "fuel",
-      "gas",
-      "uber",
-      "taxi",
-      "grab",
-    ],
-  },
-  { key: "housing", aliases: ["housing", "rent", "mortgage", "home"] },
-  {
-    key: "utilities",
-    aliases: ["utility", "utilities", "electric", "water", "internet", "phone"],
-  },
-  { key: "shopping", aliases: ["shopping", "shop", "fashion", "clothes"] },
-  {
-    key: "entertainment",
-    aliases: ["entertainment", "movie", "game", "stream", "subscription"],
-  },
-  {
-    key: "healthcare",
-    aliases: ["health", "healthcare", "medical", "hospital", "pharmacy"],
-  },
-  {
-    key: "education",
-    aliases: ["education", "course", "tuition", "school", "learning"],
-  },
-  { key: "salary", aliases: ["salary", "payroll", "wage", "income"] },
-  {
-    key: "investment",
-    aliases: ["investment", "invest", "stock", "fund", "crypto", "dividend"],
-  },
-  { key: "bills", aliases: ["bill", "bills", "payment"] },
-  { key: "insurance", aliases: ["insurance", "premium"] },
-  { key: "tax", aliases: ["tax", "vat"] },
-  { key: "savings", aliases: ["saving", "savings"] },
-  { key: "travel", aliases: ["travel", "trip", "hotel", "flight"] },
-] as const;
-
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
   const { currency } = useCurrency();
@@ -165,17 +118,9 @@ export default function AnalyticsPage() {
 
   const getDisplayCategory = (category: string) => {
     const raw = category.trim();
-    if (!raw) return t.analytics.categoryNames.uncategorized;
-    const normalized = raw.toLowerCase();
-
-    const matched = CATEGORY_ALIAS_MAP.find((entry) =>
-      entry.aliases.some(
-        (alias) => normalized === alias || normalized.includes(alias),
-      ),
-    );
-
-    if (!matched) return raw;
-    return t.analytics.categoryNames[matched.key];
+    const key = matchCategoryNameKey(raw);
+    if (key === "uncategorized" && raw) return raw;
+    return t.analytics.categoryNames[key];
   };
 
   const { startDate, endDate } = useMemo(() => getRangeDates(range), [range]);
