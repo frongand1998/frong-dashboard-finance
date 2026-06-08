@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { PageShell } from "@/components/layout/PageShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +39,24 @@ interface MonthSlot {
   month: string;
   income: number;
   expense: number;
+}
+
+interface AnalyticsTx {
+  type: string;
+  date: string;
+  amount: number;
+}
+
+interface PieTooltipParam {
+  name: string;
+  value: number;
+  percent?: number;
+}
+
+interface AxisTooltipParam {
+  seriesName: string;
+  value: number;
+  axisValue?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -116,21 +134,24 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [dayOfWeek, setDayOfWeek] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
 
-  const getDisplayCategory = (category: string) => {
-    const raw = category.trim();
-    const key = matchCategoryNameKey(raw);
-    if (key === "uncategorized" && raw) return raw;
-    return t.analytics.categoryNames[key];
-  };
+  const getDisplayCategory = useCallback(
+    (category: string) => {
+      const raw = category.trim();
+      const key = matchCategoryNameKey(raw);
+      if (key === "uncategorized" && raw) return raw;
+      return t.analytics.categoryNames[key];
+    },
+    [t.analytics.categoryNames],
+  );
 
   const { startDate, endDate } = useMemo(() => getRangeDates(range), [range]);
   const trendMonths = TREND_MONTHS[range];
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
 
     async function load() {
+      setLoading(true);
       const [catRes, trendRes, txRes] = await Promise.all([
         getCategorySummary(startDate, endDate),
         getMonthlyTrend(trendMonths),
@@ -147,7 +168,7 @@ export default function AnalyticsPage() {
       // day-of-week spending
       const dow = [0, 0, 0, 0, 0, 0, 0];
       if (txRes.success && txRes.data) {
-        txRes.data.forEach((tx: any) => {
+        (txRes.data as AnalyticsTx[]).forEach((tx) => {
           if (tx.type === "expense") {
             const d = new Date(tx.date);
             dow[d.getDay()] += Number(tx.amount);
@@ -203,7 +224,7 @@ export default function AnalyticsPage() {
         borderColor: "#e2e8f0",
         borderWidth: 1,
         textStyle: { color: "#0f172a", fontSize: 12 },
-        formatter: (p: any) =>
+        formatter: (p: PieTooltipParam) =>
           `<div style="min-width:140px">
             <div style="color:#64748b;font-size:11px;margin-bottom:4px">${p.name}</div>
             <strong>${formatCurrency(p.value, currCode)}</strong>
@@ -228,7 +249,7 @@ export default function AnalyticsPage() {
         },
       ],
     };
-  }, [expenseCategories, currency, currency.code, t]);
+  }, [expenseCategories, currency.code, getDisplayCategory]);
 
   const barOption = useMemo(() => {
     const cc = currency.code;
@@ -252,11 +273,11 @@ export default function AnalyticsPage() {
         borderColor: "#e2e8f0",
         borderWidth: 1,
         textStyle: { color: "#0f172a", fontSize: 12 },
-        formatter: (params: any) => {
+        formatter: (params: AxisTooltipParam[]) => {
           const inc =
-            params.find((p: any) => p.seriesName === incomeLabel)?.value ?? 0;
+            params.find((p) => p.seriesName === incomeLabel)?.value ?? 0;
           const exp =
-            params.find((p: any) => p.seriesName === expenseLabel)?.value ?? 0;
+            params.find((p) => p.seriesName === expenseLabel)?.value ?? 0;
           const label = params[0]?.axisValue ?? "";
           return `
             <div style="min-width:160px">
@@ -314,7 +335,6 @@ export default function AnalyticsPage() {
     trend,
     startDate,
     endDate,
-    currency,
     currency.code,
     locale,
     t.transactionType.expense,

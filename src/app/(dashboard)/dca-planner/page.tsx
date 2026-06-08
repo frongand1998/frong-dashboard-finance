@@ -649,8 +649,11 @@ export default function DcaPlannerPage() {
       headStyles: { fillColor: [15, 23, 42] },
     });
 
+    const lastAutoTableY = (doc as { lastAutoTable?: { finalY?: number } })
+      .lastAutoTable?.finalY;
+
     autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 18,
+      startY: (lastAutoTableY ?? 120) + 18,
       head: [["Month", "Contribution", "Cumulative", "Est. Value"]],
       body: projection.monthlyRows.map((row) => [
         String(row.month),

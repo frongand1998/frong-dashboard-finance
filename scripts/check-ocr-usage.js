@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 /**
  * Script to check OCR usage for a specific user
  * Run: node scripts/check-ocr-usage.js <email>

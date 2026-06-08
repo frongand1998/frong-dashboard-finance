@@ -40,13 +40,20 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useI18n } from "@/contexts/I18nContext";
 import type { Transaction, Goal, Budget } from "@/types";
 
+type CategorySummary = {
+  category: string;
+  income: number;
+  expense: number;
+  total: number;
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const { currency } = useCurrency();
   const { t } = useI18n();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategorySummary[]>([]);
   const [summary, setSummary] = useState({ income: 0, expenses: 0 });
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [budgetSpends, setBudgetSpends] = useState<
@@ -189,9 +196,7 @@ export default function DashboardPage() {
 
   // Categorised expense breakdown for insights
   const expenseInsights = useMemo(() => {
-    const expenseCats = (
-      categories as { category: string; income: number; expense: number }[]
-    )
+    const expenseCats = categories
       .filter((c) => c.expense > 0)
       .map((c) => ({
         category: c.category,

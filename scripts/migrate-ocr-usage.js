@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 /**
  * Script to run OCR usage table migration
  * Run: node scripts/migrate-ocr-usage.js

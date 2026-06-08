@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import * as Sentry from '@sentry/nextjs';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function GlobalError({
   error,
@@ -30,7 +30,8 @@ export default function GlobalError({
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                We've been notified and are working on a fix. Please try again.
+                We&apos;ve been notified and are working on a fix. Please try
+                again.
               </p>
               {error.digest && (
                 <p className="text-xs text-muted-foreground font-mono bg-muted p-2 rounded">
@@ -38,16 +39,12 @@ export default function GlobalError({
                 </p>
               )}
               <div className="flex gap-3">
-                <Button
-                  variant="primary"
-                  onClick={reset}
-                  className="flex-1"
-                >
+                <Button variant="primary" onClick={reset} className="flex-1">
                   Try Again
                 </Button>
                 <Button
                   variant="ghost"
-                  onClick={() => window.location.href = '/'}
+                  onClick={() => (window.location.href = "/")}
                   className="flex-1"
                 >
                   Go Home

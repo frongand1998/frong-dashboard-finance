@@ -1,9 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
-import { NextRequest } from "next/server";
 
 export const maxDuration = 30;
 
-export async function POST(_req: NextRequest) {
+export async function POST() {
   const { userId } = await auth();
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });

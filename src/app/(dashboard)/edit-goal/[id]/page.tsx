@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { goalSchema, type GoalFormData } from '@/lib/validators/goal';
-import { getGoals, updateGoal } from '@/server-actions/goals';
-import { PageShell } from '@/components/layout/PageShell';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { goalSchema, type GoalFormData } from "@/lib/validators/goal";
+import { getGoals, updateGoal } from "@/server-actions/goals";
+import { PageShell } from "@/components/layout/PageShell";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function EditGoalPage() {
   const router = useRouter();
@@ -33,22 +33,22 @@ export default function EditGoalPage() {
         setLoading(true);
         const result = await getGoals();
         if (result.success && result.data) {
-          const goal = result.data.find(g => g.id === id);
+          const goal = result.data.find((g) => g.id === id);
           if (goal) {
-            setValue('name', goal.name);
-            setValue('target_amount', goal.target_amount);
-            setValue('current_amount', goal.current_amount);
+            setValue("name", goal.name);
+            setValue("target_amount", goal.target_amount);
+            setValue("current_amount", goal.current_amount);
             if (goal.due_date) {
-              setValue('due_date', goal.due_date);
+              setValue("due_date", goal.due_date);
             }
           } else {
-            setError('Goal not found');
+            setError("Goal not found");
           }
         } else {
-          setError(result.error || 'Failed to load goal');
+          setError(result.error || "Failed to load goal");
         }
-      } catch (err) {
-        setError('An unexpected error occurred');
+      } catch {
+        setError("An unexpected error occurred");
       } finally {
         setLoading(false);
       }
@@ -67,12 +67,12 @@ export default function EditGoalPage() {
       const result = await updateGoal(id, data);
 
       if (result.success) {
-        router.push('/goals');
+        router.push("/goals");
       } else {
-        setError(result.error || 'Failed to update goal');
+        setError(result.error || "Failed to update goal");
       }
-    } catch (err) {
-      setError('An unexpected error occurred');
+    } catch {
+      setError("An unexpected error occurred");
     } finally {
       setSubmitting(false);
     }
@@ -123,7 +123,7 @@ export default function EditGoalPage() {
                 <input
                   id="name"
                   type="text"
-                  {...register('name')}
+                  {...register("name")}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder="e.g., Emergency Fund, Vacation, New Car"
                 />
@@ -141,12 +141,14 @@ export default function EditGoalPage() {
                   id="target_amount"
                   type="number"
                   step="0.01"
-                  {...register('target_amount', { valueAsNumber: true })}
+                  {...register("target_amount", { valueAsNumber: true })}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder="0.00"
                 />
                 {errors.target_amount && (
-                  <p className="text-sm text-danger">{errors.target_amount.message}</p>
+                  <p className="text-sm text-danger">
+                    {errors.target_amount.message}
+                  </p>
                 )}
               </div>
 
@@ -159,12 +161,14 @@ export default function EditGoalPage() {
                   id="current_amount"
                   type="number"
                   step="0.01"
-                  {...register('current_amount', { valueAsNumber: true })}
+                  {...register("current_amount", { valueAsNumber: true })}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder="0.00"
                 />
                 {errors.current_amount && (
-                  <p className="text-sm text-danger">{errors.current_amount.message}</p>
+                  <p className="text-sm text-danger">
+                    {errors.current_amount.message}
+                  </p>
                 )}
               </div>
 
@@ -176,11 +180,13 @@ export default function EditGoalPage() {
                 <input
                   id="due_date"
                   type="date"
-                  {...register('due_date')}
+                  {...register("due_date")}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 />
                 {errors.due_date && (
-                  <p className="text-sm text-danger">{errors.due_date.message}</p>
+                  <p className="text-sm text-danger">
+                    {errors.due_date.message}
+                  </p>
                 )}
               </div>
 
@@ -199,12 +205,12 @@ export default function EditGoalPage() {
                   disabled={submitting}
                   className="flex-1"
                 >
-                  {submitting ? 'Saving...' : 'Save Changes'}
+                  {submitting ? "Saving..." : "Save Changes"}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => router.push('/goals')}
+                  onClick={() => router.push("/goals")}
                   disabled={submitting}
                 >
                   Cancel

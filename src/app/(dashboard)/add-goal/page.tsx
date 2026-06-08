@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { goalSchema, type GoalFormData } from '@/lib/validators/goal';
-import { createGoal } from '@/server-actions/goals';
-import { PageShell } from '@/components/layout/PageShell';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { goalSchema, type GoalFormData } from "@/lib/validators/goal";
+import { createGoal } from "@/server-actions/goals";
+import { PageShell } from "@/components/layout/PageShell";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function AddGoalPage() {
   const router = useRouter();
@@ -34,12 +34,12 @@ export default function AddGoalPage() {
       const result = await createGoal(data);
 
       if (result.success) {
-        router.push('/goals');
+        router.push("/goals");
       } else {
-        setError(result.error || 'Failed to create goal');
+        setError(result.error || "Failed to create goal");
       }
-    } catch (err) {
-      setError('An unexpected error occurred');
+    } catch {
+      setError("An unexpected error occurred");
     } finally {
       setSubmitting(false);
     }
@@ -69,7 +69,7 @@ export default function AddGoalPage() {
                 <input
                   id="name"
                   type="text"
-                  {...register('name')}
+                  {...register("name")}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder="e.g., Emergency Fund, Vacation, New Car"
                 />
@@ -87,12 +87,14 @@ export default function AddGoalPage() {
                   id="target_amount"
                   type="number"
                   step="0.01"
-                  {...register('target_amount', { valueAsNumber: true })}
+                  {...register("target_amount", { valueAsNumber: true })}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder="0.00"
                 />
                 {errors.target_amount && (
-                  <p className="text-sm text-danger">{errors.target_amount.message}</p>
+                  <p className="text-sm text-danger">
+                    {errors.target_amount.message}
+                  </p>
                 )}
               </div>
 
@@ -105,12 +107,14 @@ export default function AddGoalPage() {
                   id="current_amount"
                   type="number"
                   step="0.01"
-                  {...register('current_amount', { valueAsNumber: true })}
+                  {...register("current_amount", { valueAsNumber: true })}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder="0.00"
                 />
                 {errors.current_amount && (
-                  <p className="text-sm text-danger">{errors.current_amount.message}</p>
+                  <p className="text-sm text-danger">
+                    {errors.current_amount.message}
+                  </p>
                 )}
                 <p className="text-xs text-muted-foreground">
                   Enter 0 if starting from scratch
@@ -125,11 +129,13 @@ export default function AddGoalPage() {
                 <input
                   id="due_date"
                   type="date"
-                  {...register('due_date')}
+                  {...register("due_date")}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 />
                 {errors.due_date && (
-                  <p className="text-sm text-danger">{errors.due_date.message}</p>
+                  <p className="text-sm text-danger">
+                    {errors.due_date.message}
+                  </p>
                 )}
               </div>
 
@@ -148,12 +154,12 @@ export default function AddGoalPage() {
                   disabled={submitting}
                   className="flex-1"
                 >
-                  {submitting ? 'Creating...' : 'Create Goal'}
+                  {submitting ? "Creating..." : "Create Goal"}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => router.push('/goals')}
+                  onClick={() => router.push("/goals")}
                   disabled={submitting}
                 >
                   Cancel

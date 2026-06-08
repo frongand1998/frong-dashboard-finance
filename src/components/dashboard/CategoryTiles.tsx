@@ -12,6 +12,19 @@ type CategoryData = {
   total: number;
 };
 
+type TreemapChartData = {
+  name: string;
+  rawCategory: string;
+  value: number;
+  income: number;
+  expense: number;
+};
+
+type TreemapFormatterParams = {
+  name?: string;
+  data?: TreemapChartData;
+};
+
 export function CategoryTiles({
   categories,
   currencyCode = "USD",
@@ -93,7 +106,7 @@ export function CategoryTiles({
 
   const option = {
     tooltip: {
-      formatter: (params: any) => {
+      formatter: (params: TreemapFormatterParams) => {
         const value = params.data?.value ?? 0;
         const income = params.data?.income ?? 0;
         const expense = params.data?.expense ?? 0;
@@ -126,7 +139,7 @@ export function CategoryTiles({
         },
         label: {
           show: true,
-          formatter: (params: any) => {
+          formatter: (params: TreemapFormatterParams) => {
             const icon = getCategoryStyle(
               params.data?.rawCategory || params.name || "",
             ).icon;
@@ -147,7 +160,7 @@ export function CategoryTiles({
 
   const onEvents = onCategoryClick
     ? {
-        click: (params: any) => {
+        click: (params: TreemapFormatterParams) => {
           const category = params?.data?.rawCategory || params?.name;
           if (category) {
             onCategoryClick(category);

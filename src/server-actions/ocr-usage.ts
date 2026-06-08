@@ -1,11 +1,10 @@
-'use server';
+"use server";
 
-import { auth, currentUser } from '@clerk/nextjs/server';
-import { supabase } from '@/lib/supabaseClient';
-import { OcrUsageInfo } from '@/lib/ocr/parser';
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { supabase } from "@/lib/supabaseClient";
+import { OcrUsageInfo } from "@/lib/ocr/parser";
 
 const OCR_MONTHLY_LIMIT = 50; // Free tier: 50 scans per month
-const VIP_OCR_LIMIT = 10000; // Effectively unlimited
 
 async function getUserEmail(): Promise<string | null> {
   try {
@@ -23,9 +22,9 @@ async function getUserLimit(): Promise<number> {
   if (!email) return OCR_MONTHLY_LIMIT;
 
   const { data, error } = await supabase
-    .from('ocr_limits')
-    .select('max_monthly')
-    .eq('email', email)
+    .from("ocr_limits")
+    .select("max_monthly")
+    .eq("email", email)
     .maybeSingle();
 
   if (error || !data) return OCR_MONTHLY_LIMIT;
@@ -45,11 +44,11 @@ export async function getOcrUsage(): Promise<{
   try {
     const { userId } = await auth();
     if (!userId) {
-      return { success: false, error: 'Unauthorized' };
+      return { success: false, error: "Unauthorized" };
     }
 
     if (!supabase) {
-      return { success: false, error: 'Database connection failed' };
+      return { success: false, error: "Database connection failed" };
     }
 
     // Get current month's usage
@@ -58,21 +57,21 @@ export async function getOcrUsage(): Promise<{
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
     const { data, error } = await supabase
-      .from('ocr_usage')
-      .select('*')
-      .eq('user_id', userId)
-      .gte('created_at', startOfMonth.toISOString())
-      .lte('created_at', endOfMonth.toISOString());
+      .from("ocr_usage")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("created_at", startOfMonth.toISOString())
+      .lte("created_at", endOfMonth.toISOString());
 
     if (error) {
-      console.error('Error fetching OCR usage:', error);
+      console.error("Error fetching OCR usage:", error);
       return { success: false, error: error.message };
     }
 
     const used = data?.length || 0;
     const limit = await getUserLimit();
     const remaining = Math.max(0, limit - used);
-    
+
     // Calculate next reset date (first day of next month)
     const resetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
@@ -86,10 +85,10 @@ export async function getOcrUsage(): Promise<{
       },
     };
   } catch (error) {
-    console.error('Error in getOcrUsage:', error);
+    console.error("Error in getOcrUsage:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -105,17 +104,17 @@ export async function recordOcrUsage(): Promise<{
   try {
     const { userId } = await auth();
     if (!userId) {
-      return { success: false, error: 'Unauthorized' };
+      return { success: false, error: "Unauthorized" };
     }
 
     if (!supabase) {
-      return { success: false, error: 'Database connection failed' };
+      return { success: false, error: "Database connection failed" };
     }
 
     // Check current usage first
     const usageResult = await getOcrUsage();
     if (!usageResult.success || !usageResult.data) {
-      return { success: false, error: 'Failed to check usage' };
+      return { success: false, error: "Failed to check usage" };
     }
 
     // Check if user has exceeded limit
@@ -127,13 +126,15 @@ export async function recordOcrUsage(): Promise<{
     }
 
     // Record the usage
-    const { error } = await supabase.from('ocr_usage').insert([{
-      user_id: userId,
-      created_at: new Date().toISOString(),
-    }] as any);
+    const { error } = await supabase.from("ocr_usage").insert([
+      {
+        user_id: userId,
+        created_at: new Date().toISOString(),
+      },
+    ]);
 
     if (error) {
-      console.error('Error recording OCR usage:', error);
+      console.error("Error recording OCR usage:", error);
       return { success: false, error: error.message };
     }
 
@@ -142,10 +143,10 @@ export async function recordOcrUsage(): Promise<{
       remainingScans: usageResult.data.remaining - 1,
     };
   } catch (error) {
-    console.error('Error in recordOcrUsage:', error);
+    console.error("Error in recordOcrUsage:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }

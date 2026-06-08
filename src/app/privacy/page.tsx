@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function PrivacyPage() {
   return (
@@ -15,28 +15,49 @@ export default function PrivacyPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-3xl">Privacy Policy</CardTitle>
-            <p className="text-sm text-muted-foreground">Last updated: January 26, 2026</p>
+            <p className="text-sm text-muted-foreground">
+              Last updated: January 26, 2026
+            </p>
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none space-y-6">
             <section>
               <h2 className="text-xl font-semibold mb-3">1. Introduction</h2>
               <p className="text-muted-foreground">
-                Your Finance Assistant ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your personal information.
+                Your Finance Assistant (&quot;we&quot;, &quot;our&quot;, or
+                &quot;us&quot;) is committed to protecting your privacy. This
+                Privacy Policy explains how we collect, use, and safeguard your
+                personal information.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">2. Information We Collect</h2>
+              <h2 className="text-xl font-semibold mb-3">
+                2. Information We Collect
+              </h2>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                <li><strong>Account Information:</strong> Email address, name, and authentication data (via Clerk)</li>
-                <li><strong>Financial Data:</strong> Transaction records, categories, amounts, and notes you enter</li>
-                <li><strong>OCR Data:</strong> Payment slip images you upload (processed client-side, not stored on servers)</li>
-                <li><strong>Usage Data:</strong> OCR usage counts, login times, and feature usage</li>
+                <li>
+                  <strong>Account Information:</strong> Email address, name, and
+                  authentication data (via Clerk)
+                </li>
+                <li>
+                  <strong>Financial Data:</strong> Transaction records,
+                  categories, amounts, and notes you enter
+                </li>
+                <li>
+                  <strong>OCR Data:</strong> Payment slip images you upload
+                  (processed client-side, not stored on servers)
+                </li>
+                <li>
+                  <strong>Usage Data:</strong> OCR usage counts, login times,
+                  and feature usage
+                </li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">3. How We Use Your Information</h2>
+              <h2 className="text-xl font-semibold mb-3">
+                3. How We Use Your Information
+              </h2>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>Provide and maintain the Your Finance Assistant service</li>
                 <li>Process your transactions and financial data</li>
@@ -47,25 +68,43 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">4. Data Storage and Security</h2>
+              <h2 className="text-xl font-semibold mb-3">
+                4. Data Storage and Security
+              </h2>
               <p className="text-muted-foreground">
-                Your financial data is stored securely in Supabase with row-level security. Payment slip images are processed locally in your browser using Tesseract.js and are not transmitted to or stored on our servers.
+                Your financial data is stored securely in Supabase with
+                row-level security. Payment slip images are processed locally in
+                your browser using Tesseract.js and are not transmitted to or
+                stored on our servers.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">5. Third-Party Services</h2>
+              <h2 className="text-xl font-semibold mb-3">
+                5. Third-Party Services
+              </h2>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                <li><strong>Clerk:</strong> Authentication and user management</li>
-                <li><strong>Supabase:</strong> Database and data storage</li>
-                <li><strong>Vercel:</strong> Application hosting</li>
-                <li><strong>Tesseract.js:</strong> Client-side OCR processing (no data sent to servers)</li>
+                <li>
+                  <strong>Clerk:</strong> Authentication and user management
+                </li>
+                <li>
+                  <strong>Supabase:</strong> Database and data storage
+                </li>
+                <li>
+                  <strong>Vercel:</strong> Application hosting
+                </li>
+                <li>
+                  <strong>Tesseract.js:</strong> Client-side OCR processing (no
+                  data sent to servers)
+                </li>
               </ul>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold mb-3">6. Your Rights</h2>
-              <p className="text-muted-foreground mb-2">You have the right to:</p>
+              <p className="text-muted-foreground mb-2">
+                You have the right to:
+              </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>Access your personal data</li>
                 <li>Correct inaccurate data</li>
@@ -78,15 +117,21 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">7. Data Retention</h2>
               <p className="text-muted-foreground">
-                We retain your data for as long as your account is active. When you delete your account, all associated data is permanently removed from our systems within 30 days.
+                We retain your data for as long as your account is active. When
+                you delete your account, all associated data is permanently
+                removed from our systems within 30 days.
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold mb-3">8. Contact Us</h2>
               <p className="text-muted-foreground">
-                If you have questions about this Privacy Policy, please contact us at{' '}
-                <a href="mailto:privacy@frongfinance.com" className="text-accent hover:underline">
+                If you have questions about this Privacy Policy, please contact
+                us at{" "}
+                <a
+                  href="mailto:privacy@frongfinance.com"
+                  className="text-accent hover:underline"
+                >
                   privacy@frongfinance.com
                 </a>
               </p>

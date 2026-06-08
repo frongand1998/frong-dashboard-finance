@@ -90,7 +90,7 @@ export async function upsertBudget(
           limit_amount: limitAmount,
           month: targetMonth,
           updated_at: new Date().toISOString(),
-        } as any,
+        },
         { onConflict: "user_id,category,month" },
       )
       .select()
@@ -110,7 +110,7 @@ export async function upsertBudget(
             limit_amount: limitAmount,
             month: targetMonth,
             updated_at: new Date().toISOString(),
-          } as any,
+          },
           { onConflict: "user_id,category,month" },
         )
         .select()

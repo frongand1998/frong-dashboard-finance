@@ -30,7 +30,7 @@ export default function GoalsPage() {
       } else {
         setError(result.error || "Failed to load goals");
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -52,7 +52,7 @@ export default function GoalsPage() {
       } else {
         toast(result.error || "Failed to delete goal", "error");
       }
-    } catch (err) {
+    } catch {
       toast("An unexpected error occurred", "error");
     } finally {
       setDeleting(null);

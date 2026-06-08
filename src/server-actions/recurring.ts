@@ -19,6 +19,10 @@ type RunResult = {
   skippedDuplicates: number;
 };
 
+type RecurringContext =
+  | { success: false; error: string }
+  | { success: true; userId: string; client: AnySupabase };
+
 function getServerSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -30,13 +34,13 @@ function getServerSupabaseClient() {
   return supabase;
 }
 
-function getRecurringContextError(
+function resolveRecurringContext(
   userId: string | null | undefined,
   client: AnySupabase | null,
-) {
-  if (!userId) return "Unauthorized";
-  if (!client) return "Database connection failed";
-  return null;
+): RecurringContext {
+  if (!userId) return { success: false, error: "Unauthorized" };
+  if (!client) return { success: false, error: "Database connection failed" };
+  return { success: true, userId, client };
 }
 
 const markerFor = (ruleId: string, runDate: string) =>
@@ -118,20 +122,22 @@ export async function getRecurringRules() {
   try {
     const { userId } = await auth();
     const client = getServerSupabaseClient();
-    const contextError = getRecurringContextError(userId, client);
+    const context = resolveRecurringContext(userId, client);
 
-    if (contextError) {
+    if (!context.success) {
       return {
         success: false,
-        error: contextError,
+        error: context.error,
         data: [] as RecurringRule[],
       };
     }
 
-    const { data, error } = await client
+    const { userId: currentUserId, client: db } = context;
+
+    const { data, error } = await db
       .from("recurring_rules")
       .select("*")
-      .eq("user_id", userId)
+      .eq("user_id", currentUserId)
       .order("created_at", { ascending: false });
 
     if (error)
@@ -157,20 +163,22 @@ export async function createRecurringRule(payload: RecurringRuleFormData) {
   try {
     const { userId } = await auth();
     const client = getServerSupabaseClient();
-    const contextError = getRecurringContextError(userId, client);
+    const context = resolveRecurringContext(userId, client);
 
-    if (contextError) {
-      return { success: false, error: contextError };
+    if (!context.success) {
+      return { success: false, error: context.error };
     }
+
+    const { userId: currentUserId, client: db } = context;
 
     const data = recurringRuleSchema.parse(payload);
     const anchorDay =
       data.frequency === "monthly" ? getAnchorDay(data.startDate) : null;
 
-    const { data: result, error } = await client
+    const { data: result, error } = await db
       .from("recurring_rules")
       .insert({
-        user_id: userId,
+        user_id: currentUserId,
         name: data.name,
         type: data.type,
         category: data.category,
@@ -205,21 +213,23 @@ export async function updateRecurringRule(
   try {
     const { userId } = await auth();
     const client = getServerSupabaseClient();
-    const contextError = getRecurringContextError(userId, client);
+    const context = resolveRecurringContext(userId, client);
 
-    if (contextError) {
-      return { success: false, error: contextError };
+    if (!context.success) {
+      return { success: false, error: context.error };
     }
+
+    const { userId: currentUserId, client: db } = context;
 
     const data = recurringRuleSchema.parse(payload);
     const anchorDay =
       data.frequency === "monthly" ? getAnchorDay(data.startDate) : null;
 
-    const { data: existingRule, error: getError } = await client
+    const { data: existingRule, error: getError } = await db
       .from("recurring_rules")
       .select("start_date, frequency, next_run_on")
       .eq("id", id)
-      .eq("user_id", userId)
+      .eq("user_id", currentUserId)
       .single();
 
     if (getError || !existingRule) {
@@ -237,7 +247,7 @@ export async function updateRecurringRule(
       ? data.startDate
       : existingRule.next_run_on;
 
-    const { data: result, error } = await client
+    const { data: result, error } = await db
       .from("recurring_rules")
       .update({
         name: data.name,
@@ -253,7 +263,7 @@ export async function updateRecurringRule(
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
-      .eq("user_id", userId)
+      .eq("user_id", currentUserId)
       .select()
       .single();
 
@@ -274,20 +284,22 @@ export async function toggleRecurringRule(id: string, isActive: boolean) {
   try {
     const { userId } = await auth();
     const client = getServerSupabaseClient();
-    const contextError = getRecurringContextError(userId, client);
+    const context = resolveRecurringContext(userId, client);
 
-    if (contextError) {
-      return { success: false, error: contextError };
+    if (!context.success) {
+      return { success: false, error: context.error };
     }
 
-    const { error } = await client
+    const { userId: currentUserId, client: db } = context;
+
+    const { error } = await db
       .from("recurring_rules")
       .update({
         is_active: isActive,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
-      .eq("user_id", userId);
+      .eq("user_id", currentUserId);
 
     if (error) return { success: false, error: error.message };
     return { success: true };
@@ -306,17 +318,19 @@ export async function deleteRecurringRule(id: string) {
   try {
     const { userId } = await auth();
     const client = getServerSupabaseClient();
-    const contextError = getRecurringContextError(userId, client);
+    const context = resolveRecurringContext(userId, client);
 
-    if (contextError) {
-      return { success: false, error: contextError };
+    if (!context.success) {
+      return { success: false, error: context.error };
     }
 
-    const { error } = await client
+    const { userId: currentUserId, client: db } = context;
+
+    const { error } = await db
       .from("recurring_rules")
       .delete()
       .eq("id", id)
-      .eq("user_id", userId);
+      .eq("user_id", currentUserId);
 
     if (error) return { success: false, error: error.message };
     return { success: true };
@@ -335,17 +349,19 @@ export async function runRecurringRuleNow(id: string) {
   try {
     const { userId } = await auth();
     const client = getServerSupabaseClient();
-    const contextError = getRecurringContextError(userId, client);
+    const context = resolveRecurringContext(userId, client);
 
-    if (contextError) {
-      return { success: false, error: contextError };
+    if (!context.success) {
+      return { success: false, error: context.error };
     }
 
-    const { data: rule, error } = await client
+    const { userId: currentUserId, client: db } = context;
+
+    const { data: rule, error } = await db
       .from("recurring_rules")
       .select("*")
       .eq("id", id)
-      .eq("user_id", userId)
+      .eq("user_id", currentUserId)
       .single();
 
     const recurringRule = (rule ?? null) as RecurringRule | null;
@@ -361,8 +377,8 @@ export async function runRecurringRuleNow(id: string) {
     const marker = markerFor(recurringRule.id, runDate);
     const note = [recurringRule.note?.trim(), marker].filter(Boolean).join(" ");
 
-    const { error: insertError } = await client.from("transactions").insert({
-      user_id: userId,
+    const { error: insertError } = await db.from("transactions").insert({
+      user_id: currentUserId,
       type: recurringRule.type,
       category: recurringRule.category,
       amount: recurringRule.amount,
@@ -380,7 +396,7 @@ export async function runRecurringRuleNow(id: string) {
       recurringRule.anchor_day ?? undefined,
     );
 
-    await client
+    await db
       .from("recurring_rules")
       .update({
         next_run_on: nextRunOn,
@@ -388,7 +404,7 @@ export async function runRecurringRuleNow(id: string) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
-      .eq("user_id", userId);
+      .eq("user_id", currentUserId);
 
     return { success: true };
   } catch (error) {
@@ -404,16 +420,18 @@ export async function runDueRecurringForCurrentUser() {
   try {
     const { userId } = await auth();
     const client = getServerSupabaseClient();
-    const contextError = getRecurringContextError(userId, client);
+    const context = resolveRecurringContext(userId, client);
 
-    if (contextError) {
-      return { success: false, error: contextError };
+    if (!context.success) {
+      return { success: false, error: context.error };
     }
 
-    const { data, error } = await client
+    const { userId: currentUserId, client: db } = context;
+
+    const { data, error } = await db
       .from("recurring_rules")
       .select("*")
-      .eq("user_id", userId)
+      .eq("user_id", currentUserId)
       .eq("is_active", true)
       .lte("next_run_on", todayIso())
       .order("next_run_on", { ascending: true });
@@ -421,8 +439,8 @@ export async function runDueRecurringForCurrentUser() {
     if (error) return { success: false, error: error.message };
 
     const summary = await processRecurringRules(
-      client,
-      userId,
+      db,
+      currentUserId,
       (data ?? []) as RecurringRule[],
     );
 

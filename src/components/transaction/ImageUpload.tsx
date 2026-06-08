@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef } from "react";
-import { Upload, X, FileImage, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Upload, X, AlertCircle } from "lucide-react";
 
 interface ImageUploadProps {
   onImagesSelect: (files: File[]) => void;
@@ -132,9 +132,12 @@ export function ImageUpload({
               key={index}
               className="relative rounded-lg border border-border overflow-hidden group"
             >
-              <img
+              <Image
                 src={preview}
                 alt={`Slip ${index + 1}`}
+                width={256}
+                height={128}
+                unoptimized
                 className="w-full h-32 object-cover bg-muted"
               />
               <button

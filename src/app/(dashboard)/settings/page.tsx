@@ -9,7 +9,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useCurrency, currencies } from "@/contexts/CurrencyContext";
 import { useI18n } from "@/contexts/I18nContext";
 import { ChevronRight, Wallet } from "lucide-react";

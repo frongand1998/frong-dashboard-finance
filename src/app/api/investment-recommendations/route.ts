@@ -267,7 +267,7 @@ export async function GET(req: NextRequest) {
   const selectedPlan = PLAN_RECOMMENDATIONS[plan] || PLAN_RECOMMENDATIONS.core;
   const profile = selectedPlan[risk] || selectedPlan.balanced;
 
-  let quoteMap = new Map<string, { price?: number; changePct?: number }>();
+  const quoteMap = new Map<string, { price?: number; changePct?: number }>();
 
   try {
     const symbolList = profile.map((item) => item.symbol);

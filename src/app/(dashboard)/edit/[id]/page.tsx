@@ -1,14 +1,20 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { transactionSchema, type TransactionFormData } from '@/lib/validators/transaction';
-import { getTransactionById, updateTransaction } from '@/server-actions/transactions';
-import { PageShell } from '@/components/layout/PageShell';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  transactionSchema,
+  type TransactionFormData,
+} from "@/lib/validators/transaction";
+import {
+  getTransactionById,
+  updateTransaction,
+} from "@/server-actions/transactions";
+import { PageShell } from "@/components/layout/PageShell";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function EditTransactionPage() {
   const router = useRouter();
@@ -23,12 +29,9 @@ export default function EditTransactionPage() {
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
   } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
   });
-
-  const type = watch('type');
 
   useEffect(() => {
     const fetchTransaction = async () => {
@@ -36,16 +39,16 @@ export default function EditTransactionPage() {
         setLoading(true);
         const result = await getTransactionById(id);
         if (result.success && result.data) {
-          setValue('type', result.data.type);
-          setValue('category', result.data.category);
-          setValue('amount', result.data.amount);
-          setValue('date', result.data.date);
-          setValue('note', result.data.note || '');
+          setValue("type", result.data.type);
+          setValue("category", result.data.category);
+          setValue("amount", result.data.amount);
+          setValue("date", result.data.date);
+          setValue("note", result.data.note || "");
         } else {
-          setError(result.error || 'Failed to load transaction');
+          setError(result.error || "Failed to load transaction");
         }
-      } catch (err) {
-        setError('An unexpected error occurred');
+      } catch {
+        setError("An unexpected error occurred");
       } finally {
         setLoading(false);
       }
@@ -64,12 +67,12 @@ export default function EditTransactionPage() {
       const result = await updateTransaction(id, data);
 
       if (result.success) {
-        router.push('/transactions');
+        router.push("/transactions");
       } else {
-        setError(result.error || 'Failed to update transaction');
+        setError(result.error || "Failed to update transaction");
       }
-    } catch (err) {
-      setError('An unexpected error occurred');
+    } catch {
+      setError("An unexpected error occurred");
     } finally {
       setSubmitting(false);
     }
@@ -120,7 +123,7 @@ export default function EditTransactionPage() {
                     <input
                       type="radio"
                       value="income"
-                      {...register('type')}
+                      {...register("type")}
                       className="w-4 h-4 text-success"
                     />
                     <span className="text-sm">Income</span>
@@ -129,7 +132,7 @@ export default function EditTransactionPage() {
                     <input
                       type="radio"
                       value="expense"
-                      {...register('type')}
+                      {...register("type")}
                       className="w-4 h-4 text-danger"
                     />
                     <span className="text-sm">Expense</span>
@@ -148,12 +151,14 @@ export default function EditTransactionPage() {
                 <input
                   id="category"
                   type="text"
-                  {...register('category')}
+                  {...register("category")}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder="e.g., Salary, Food, Transport"
                 />
                 {errors.category && (
-                  <p className="text-sm text-danger">{errors.category.message}</p>
+                  <p className="text-sm text-danger">
+                    {errors.category.message}
+                  </p>
                 )}
               </div>
 
@@ -166,7 +171,7 @@ export default function EditTransactionPage() {
                   id="amount"
                   type="number"
                   step="0.01"
-                  {...register('amount', { valueAsNumber: true })}
+                  {...register("amount", { valueAsNumber: true })}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder="0.00"
                 />
@@ -183,7 +188,7 @@ export default function EditTransactionPage() {
                 <input
                   id="date"
                   type="date"
-                  {...register('date')}
+                  {...register("date")}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 />
                 {errors.date && (
@@ -198,7 +203,7 @@ export default function EditTransactionPage() {
                 </label>
                 <textarea
                   id="note"
-                  {...register('note')}
+                  {...register("note")}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
                   rows={3}
                   placeholder="Add any additional details..."
@@ -223,12 +228,12 @@ export default function EditTransactionPage() {
                   disabled={submitting}
                   className="flex-1"
                 >
-                  {submitting ? 'Saving...' : 'Save Changes'}
+                  {submitting ? "Saving..." : "Save Changes"}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => router.push('/transactions')}
+                  onClick={() => router.push("/transactions")}
                   disabled={submitting}
                 >
                   Cancel

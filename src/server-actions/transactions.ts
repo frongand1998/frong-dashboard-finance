@@ -8,6 +8,9 @@ import {
 } from "@/lib/validators/transaction";
 import type { Transaction } from "@/types";
 
+type TransactionAmountRow = Pick<Transaction, "type" | "amount">;
+type TrendRow = Pick<Transaction, "type" | "amount" | "date">;
+
 export async function createTransaction(data: TransactionFormData) {
   try {
     const { userId } = await auth();
@@ -22,7 +25,7 @@ export async function createTransaction(data: TransactionFormData) {
       .insert({
         user_id: userId,
         ...validated,
-      } as any)
+      })
       .select()
       .single();
 
@@ -87,12 +90,12 @@ export async function getTransactionsSummary(
 
     if (error) throw error;
 
-    const summary = ((data || []) as any).reduce(
-      (acc: any, tx: any) => {
+    const summary = ((data || []) as TransactionAmountRow[]).reduce(
+      (acc: { income: number; expenses: number }, tx) => {
         if (tx.type === "income") {
-          acc.income += tx.amount;
+          acc.income += Number(tx.amount);
         } else {
-          acc.expenses += tx.amount;
+          acc.expenses += Number(tx.amount);
         }
         return acc;
       },
@@ -165,7 +168,7 @@ export async function updateTransaction(id: string, data: TransactionFormData) {
       updated_at: new Date().toISOString(),
     };
 
-    const { data: result, error } = await (supabase as any)
+    const { data: result, error } = await supabase
       .from("transactions")
       .update(updateData)
       .eq("id", id)
@@ -218,7 +221,7 @@ export async function getMonthlyTrend(months = 6) {
       slots.push({ month: d.toISOString().slice(0, 7), income: 0, expense: 0 });
     }
 
-    (data || []).forEach((tx: any) => {
+    ((data || []) as TrendRow[]).forEach((tx) => {
       const month = String(tx.date).slice(0, 7);
       const slot = slots.find((s) => s.month === month);
       if (!slot) return;

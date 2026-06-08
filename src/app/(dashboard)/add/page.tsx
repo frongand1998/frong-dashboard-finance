@@ -21,7 +21,11 @@ import {
   transactionSchema,
   type TransactionFormData,
 } from "@/lib/validators/transaction";
-import { performOCR, type OcrUsageInfo } from "@/lib/ocr/parser";
+import {
+  performOCR,
+  type OcrUsageInfo,
+  type ParsedSlipData,
+} from "@/lib/ocr/parser";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import type { Transaction } from "@/types";
@@ -49,13 +53,14 @@ export default function AddRecordPage() {
     total: 0,
   });
   const [ocrSuccess, setOcrSuccess] = useState(false);
-  const [extractedTransactions, setExtractedTransactions] = useState<any[]>([]);
+  const [extractedTransactions, setExtractedTransactions] = useState<
+    ParsedSlipData[]
+  >([]);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState<{
     reference: string;
     date: string;
   } | null>(null);
-  const [pendingExtractedData, setPendingExtractedData] = useState<any>(null);
   const [ocrUsage, setOcrUsage] = useState<OcrUsageInfo | null>(null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
 
@@ -142,7 +147,7 @@ export default function AddRecordPage() {
     setIsProcessing(true);
     setError(null);
     setProcessingProgress({ current: 0, total: payslipImages.length });
-    const transactions: any[] = [];
+    const transactions: ParsedSlipData[] = [];
 
     try {
       for (let i = 0; i < payslipImages.length; i++) {
@@ -247,7 +252,7 @@ export default function AddRecordPage() {
           failCount++;
           failedReasons.push(result.error || "Failed to create transaction");
         }
-      } catch (err) {
+      } catch {
         failCount++;
         failedReasons.push("Unexpected error while creating transaction");
       }
@@ -290,7 +295,7 @@ export default function AddRecordPage() {
 
   const handleUpdateExtractedTransaction = (
     index: number,
-    field: string,
+    field: "date" | "category",
     value: string,
   ) => {
     setExtractedTransactions((prev) =>
@@ -304,7 +309,6 @@ export default function AddRecordPage() {
     setImagePreviews([]);
     setShowDuplicateWarning(false);
     setDuplicateInfo(null);
-    setPendingExtractedData(null);
 
     // Refresh OCR usage
     const result = await getOcrUsage();
@@ -337,7 +341,7 @@ export default function AddRecordPage() {
       } else {
         setError(result.error || "Failed to create transaction");
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
@@ -417,7 +421,7 @@ export default function AddRecordPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  You've used all your free OCR scans for this month.
+                  You&apos;ve used all your free OCR scans for this month.
                 </p>
                 <div className="bg-muted p-3 rounded-lg space-y-1">
                   <p className="text-sm">
@@ -446,7 +450,7 @@ export default function AddRecordPage() {
                   }}
                   className="w-full"
                 >
-                  OK, I'll Add Manually
+                  OK, I&apos;ll Add Manually
                 </Button>
               </CardContent>
             </Card>

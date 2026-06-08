@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from "react";
 
 type Currency = {
   code: string;
@@ -9,16 +9,16 @@ type Currency = {
 };
 
 export const currencies: Currency[] = [
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'British Pound' },
-  { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
-  { code: 'THB', symbol: '฿', name: 'Thai Baht' },
-  { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
-  { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
-  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
-  { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
-  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar' },
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "British Pound" },
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+  { code: "THB", symbol: "฿", name: "Thai Baht" },
+  { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
+  { code: "INR", symbol: "₹", name: "Indian Rupee" },
+  { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+  { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+  { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
 ];
 
 type CurrencyContextType = {
@@ -26,22 +26,33 @@ type CurrencyContextType = {
   setCurrency: (currency: Currency) => void;
 };
 
-const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
+const CurrencyContext = createContext<CurrencyContextType | undefined>(
+  undefined,
+);
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrencyState] = useState<Currency>(currencies[0]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('currency');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setCurrencyState(parsed);
+  const [currency, setCurrencyState] = useState<Currency>(() => {
+    if (typeof window === "undefined") {
+      return currencies[0];
     }
-  }, []);
+
+    const saved = localStorage.getItem("currency");
+    if (!saved) {
+      return currencies[0];
+    }
+
+    try {
+      const parsed = JSON.parse(saved) as Currency;
+      const matched = currencies.find((c) => c.code === parsed.code);
+      return matched ?? currencies[0];
+    } catch {
+      return currencies[0];
+    }
+  });
 
   const setCurrency = (newCurrency: Currency) => {
     setCurrencyState(newCurrency);
-    localStorage.setItem('currency', JSON.stringify(newCurrency));
+    localStorage.setItem("currency", JSON.stringify(newCurrency));
   };
 
   return (
@@ -54,7 +65,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 export function useCurrency() {
   const context = useContext(CurrencyContext);
   if (!context) {
-    throw new Error('useCurrency must be used within CurrencyProvider');
+    throw new Error("useCurrency must be used within CurrencyProvider");
   }
   return context;
 }

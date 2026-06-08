@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import ReactECharts from 'echarts-for-react';
-import { formatCurrency } from '@/lib/utils';
+import ReactECharts from "echarts-for-react";
+import { formatCurrency } from "@/lib/utils";
 
 export type IncomeExpenseDatum = {
   label: string;
@@ -14,7 +14,13 @@ type Props = {
   currencyCode?: string;
 };
 
-export const IncomeExpenseChart = ({ data, currencyCode = 'USD' }: Props) => {
+type AxisTooltipParam = {
+  seriesName: string;
+  value: number;
+  axisValue?: string;
+};
+
+export const IncomeExpenseChart = ({ data, currencyCode = "USD" }: Props) => {
   const labels = data.map((item) => item.label);
   const incomeSeries = data.map((item) => item.income);
   const expenseSeries = data.map((item) => item.expense);
@@ -28,21 +34,23 @@ export const IncomeExpenseChart = ({ data, currencyCode = 'USD' }: Props) => {
       containLabel: true,
     },
     tooltip: {
-      trigger: 'axis',
+      trigger: "axis",
       axisPointer: {
-        type: 'cross',
+        type: "cross",
       },
-      backgroundColor: 'rgba(255,255,255,0.95)',
-      borderColor: '#e2e8f0',
+      backgroundColor: "rgba(255,255,255,0.95)",
+      borderColor: "#e2e8f0",
       borderWidth: 1,
       textStyle: {
-        color: '#0f172a',
+        color: "#0f172a",
         fontSize: 12,
       },
-      formatter: (params: any) => {
-        const income = params.find((p: any) => p.seriesName === 'Income')?.value ?? 0;
-        const expense = params.find((p: any) => p.seriesName === 'Expenses')?.value ?? 0;
-        const label = params[0]?.axisValue ?? '';
+      formatter: (params: AxisTooltipParam[]) => {
+        const income =
+          params.find((p) => p.seriesName === "Income")?.value ?? 0;
+        const expense =
+          params.find((p) => p.seriesName === "Expenses")?.value ?? 0;
+        const label = params[0]?.axisValue ?? "";
 
         return `
           <div style="display:flex;flex-direction:column;gap:6px;min-width:160px;">
@@ -66,61 +74,62 @@ export const IncomeExpenseChart = ({ data, currencyCode = 'USD' }: Props) => {
       itemHeight: 10,
     },
     xAxis: {
-      type: 'category',
+      type: "category",
       data: labels,
       boundaryGap: false,
-      axisLine: { lineStyle: { color: '#e2e8f0' } },
+      axisLine: { lineStyle: { color: "#e2e8f0" } },
       axisTick: { show: false },
-      axisLabel: { color: '#64748b' },
+      axisLabel: { color: "#64748b" },
     },
     yAxis: {
-      type: 'value',
+      type: "value",
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: '#e2e8f0' } },
+      splitLine: { lineStyle: { color: "#e2e8f0" } },
       axisLabel: {
-        color: '#64748b',
-        formatter: (value: number) => (value >= 1000 ? `${value / 1000}k` : `${value}`),
+        color: "#64748b",
+        formatter: (value: number) =>
+          value >= 1000 ? `${value / 1000}k` : `${value}`,
       },
     },
     dataZoom: [
       {
-        type: 'inside',
+        type: "inside",
         zoomOnMouseWheel: true,
         moveOnMouseMove: true,
         moveOnMouseWheel: true,
         throttle: 50,
       },
       {
-        type: 'slider',
+        type: "slider",
         height: 20,
         bottom: 8,
-        borderColor: 'transparent',
-        fillerColor: 'rgba(148,163,184,0.2)',
-        handleStyle: { color: '#94a3b8' },
+        borderColor: "transparent",
+        fillerColor: "rgba(148,163,184,0.2)",
+        handleStyle: { color: "#94a3b8" },
       },
     ],
     series: [
       {
-        name: 'Income',
-        type: 'line',
+        name: "Income",
+        type: "line",
         smooth: true,
-        symbol: 'circle',
+        symbol: "circle",
         symbolSize: 6,
-        lineStyle: { width: 2, color: '#10b981' },
-        itemStyle: { color: '#10b981' },
-        areaStyle: { color: 'rgba(16,185,129,0.12)' },
+        lineStyle: { width: 2, color: "#10b981" },
+        itemStyle: { color: "#10b981" },
+        areaStyle: { color: "rgba(16,185,129,0.12)" },
         data: incomeSeries,
       },
       {
-        name: 'Expenses',
-        type: 'line',
+        name: "Expenses",
+        type: "line",
         smooth: true,
-        symbol: 'circle',
+        symbol: "circle",
         symbolSize: 6,
-        lineStyle: { width: 2, color: '#ef4444' },
-        itemStyle: { color: '#ef4444' },
-        areaStyle: { color: 'rgba(239,68,68,0.12)' },
+        lineStyle: { width: 2, color: "#ef4444" },
+        itemStyle: { color: "#ef4444" },
+        areaStyle: { color: "rgba(239,68,68,0.12)" },
         data: expenseSeries,
       },
     ],
@@ -128,7 +137,7 @@ export const IncomeExpenseChart = ({ data, currencyCode = 'USD' }: Props) => {
 
   return (
     <div className="h-[320px]">
-      <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+      <ReactECharts option={option} style={{ height: "100%", width: "100%" }} />
     </div>
   );
 };

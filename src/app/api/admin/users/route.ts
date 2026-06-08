@@ -27,7 +27,7 @@ export async function GET() {
 
   const result = await client.users.getUserList({ limit: 500 });
   const users = result.data
-    .map((user: any) => {
+    .map((user) => {
       const email = getPrimaryEmail(user);
       const isDefaultAdmin = isDefaultAdminEmail(email);
       const isAdmin = isDefaultAdmin || Boolean(user.publicMetadata?.isAdmin);
@@ -45,7 +45,7 @@ export async function GET() {
         lastSignInAt: user.lastSignInAt,
       };
     })
-    .sort((a: any, b: any) => {
+    .sort((a, b) => {
       if (a.isDefaultAdmin && !b.isDefaultAdmin) return -1;
       if (!a.isDefaultAdmin && b.isDefaultAdmin) return 1;
       return (a.email || "").localeCompare(b.email || "");
