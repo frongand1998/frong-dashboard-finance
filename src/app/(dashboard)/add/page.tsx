@@ -63,6 +63,7 @@ export default function AddRecordPage() {
   } | null>(null);
   const [ocrUsage, setOcrUsage] = useState<OcrUsageInfo | null>(null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [historySort, setHistorySort] = useState<"newest" | "oldest">("newest");
 
   const {
     register,
@@ -106,10 +107,28 @@ export default function AddRecordPage() {
   }, []);
 
   const selectedDate = watch("date");
+  const selectedCategory = watch("category");
   const selectedMonth = selectedDate ? selectedDate.slice(0, 7) : "";
+  const categoryOptions = selectedCategory
+    ? Array.from(new Set([selectedCategory, ...categories]))
+    : categories;
   const historyTransactions = allTransactions
     .filter((tx) => tx.date.slice(0, 7) === selectedMonth)
-    .slice(0, 10);
+    .sort((a, b) => {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+
+  const displayedHistoryTransactions =
+    historySort === "oldest"
+      ? [...historyTransactions].reverse().slice(0, 10)
+      : historyTransactions.slice(0, 10);
+
+  const clearTransactionForm = () => {
+    reset(getDefaultFormValues());
+    setValue("category", "");
+    setValue("amount", Number.NaN);
+    setValue("note", "");
+  };
 
   const handleImagesSelect = async (files: File[]) => {
     // Check if user has enough OCR scans
@@ -262,7 +281,7 @@ export default function AddRecordPage() {
 
     if (successCount > 0) {
       setSuccess(true);
-      reset(getDefaultFormValues());
+      clearTransactionForm();
       setPayslipImages([]);
       setImagePreviews([]);
       setExtractedTransactions([]);
@@ -327,7 +346,7 @@ export default function AddRecordPage() {
 
       if (result.success) {
         setSuccess(true);
-        reset(getDefaultFormValues());
+        clearTransactionForm();
         setPayslipImages([]);
         setImagePreviews([]);
         setExtractedTransactions([]);
@@ -515,20 +534,20 @@ export default function AddRecordPage() {
                 <label htmlFor="category" className="text-sm font-medium">
                   Category
                 </label>
-                <input
+                <select
                   id="category"
-                  type="text"
                   {...register("category")}
-                  list="category-suggestions"
-                  placeholder="e.g., Groceries, Salary, Utilities"
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  autoComplete="off"
-                />
-                <datalist id="category-suggestions">
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat} />
+                >
+                  <option value="" disabled>
+                    Select a category
+                  </option>
+                  {categoryOptions.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
                   ))}
-                </datalist>
+                </select>
                 {errors.category && (
                   <p className="text-sm text-danger">
                     {errors.category.message}
@@ -778,9 +797,29 @@ export default function AddRecordPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>
-              History ({selectedMonth || "No month selected"})
-            </CardTitle>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>
+                History ({selectedMonth || "No month selected"})
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={historySort === "newest" ? "primary" : "ghost"}
+                  onClick={() => setHistorySort("newest")}
+                >
+                  Newest
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={historySort === "oldest" ? "primary" : "ghost"}
+                  onClick={() => setHistorySort("oldest")}
+                >
+                  Oldest
+                </Button>
+              </div>
+            </div>
             <p className="text-sm text-muted-foreground">
               Showing transactions from the same month as the selected date
             </p>
@@ -795,7 +834,7 @@ export default function AddRecordPage() {
                   />
                 ))}
               </div>
-            ) : historyTransactions.length === 0 ? (
+            ) : displayedHistoryTransactions.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No transactions found for this month.
               </p>
@@ -821,7 +860,7 @@ export default function AddRecordPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {historyTransactions.map((tx) => (
+                    {displayedHistoryTransactions.map((tx) => (
                       <tr key={tx.id} className="border-b border-border/50">
                         <td className="whitespace-nowrap py-2 pr-4">
                           {formatDate(tx.date)}

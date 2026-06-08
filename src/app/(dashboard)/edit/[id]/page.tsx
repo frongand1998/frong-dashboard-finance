@@ -12,6 +12,7 @@ import {
   getTransactionById,
   updateTransaction,
 } from "@/server-actions/transactions";
+import { getCategories } from "@/server-actions/categories";
 import { PageShell } from "@/components/layout/PageShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,29 +24,44 @@ export default function EditTransactionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
+    watch,
   } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
   });
+
+  const selectedCategory = watch("category");
+  const categoryOptions = selectedCategory
+    ? Array.from(new Set([selectedCategory, ...categories]))
+    : categories;
 
   useEffect(() => {
     const fetchTransaction = async () => {
       try {
         setLoading(true);
-        const result = await getTransactionById(id);
-        if (result.success && result.data) {
-          setValue("type", result.data.type);
-          setValue("category", result.data.category);
-          setValue("amount", result.data.amount);
-          setValue("date", result.data.date);
-          setValue("note", result.data.note || "");
+        const [transactionResult, categoriesResult] = await Promise.all([
+          getTransactionById(id),
+          getCategories(),
+        ]);
+
+        if (categoriesResult.success) {
+          setCategories(categoriesResult.data);
+        }
+
+        if (transactionResult.success && transactionResult.data) {
+          setValue("type", transactionResult.data.type);
+          setValue("category", transactionResult.data.category);
+          setValue("amount", transactionResult.data.amount);
+          setValue("date", transactionResult.data.date);
+          setValue("note", transactionResult.data.note || "");
         } else {
-          setError(result.error || "Failed to load transaction");
+          setError(transactionResult.error || "Failed to load transaction");
         }
       } catch {
         setError("An unexpected error occurred");
@@ -148,13 +164,20 @@ export default function EditTransactionPage() {
                 <label htmlFor="category" className="text-sm font-medium">
                   Category
                 </label>
-                <input
+                <select
                   id="category"
-                  type="text"
                   {...register("category")}
                   className="w-full rounded-lg border border-border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  placeholder="e.g., Salary, Food, Transport"
-                />
+                >
+                  <option value="" disabled>
+                    Select a category
+                  </option>
+                  {categoryOptions.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
                 {errors.category && (
                   <p className="text-sm text-danger">
                     {errors.category.message}
