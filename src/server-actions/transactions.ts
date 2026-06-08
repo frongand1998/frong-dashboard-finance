@@ -7,9 +7,19 @@ import {
   type TransactionFormData,
 } from "@/lib/validators/transaction";
 import type { Transaction } from "@/types";
+import { normalizeCategoryLabel } from "@/lib/utils";
 
 type TransactionAmountRow = Pick<Transaction, "type" | "amount">;
 type TrendRow = Pick<Transaction, "type" | "amount" | "date">;
+
+function normalizeTransactionCategory<T extends { category: string }>(
+  tx: T,
+): T {
+  return {
+    ...tx,
+    category: normalizeCategoryLabel(tx.category),
+  };
+}
 
 export async function createTransaction(data: TransactionFormData) {
   try {
@@ -19,12 +29,16 @@ export async function createTransaction(data: TransactionFormData) {
     }
 
     const validated = transactionSchema.parse(data);
+    const normalized = {
+      ...validated,
+      category: normalizeCategoryLabel(validated.category),
+    };
 
     const { data: result, error } = await supabase
       .from("transactions")
       .insert({
         user_id: userId,
-        ...validated,
+        ...normalized,
       })
       .select()
       .single();
@@ -62,7 +76,7 @@ export async function getTransactions(limit = 10, offset = 0) {
     if (error) throw error;
     return {
       success: true,
-      data: (data || []) as Transaction[],
+      data: ((data || []) as Transaction[]).map(normalizeTransactionCategory),
       total: count || 0,
     };
   } catch (error) {
@@ -145,7 +159,10 @@ export async function getTransactionById(id: string) {
       .single();
 
     if (error) throw error;
-    return { success: true, data: data as Transaction };
+    return {
+      success: true,
+      data: normalizeTransactionCategory(data as Transaction),
+    };
   } catch (error) {
     console.error("Get transaction error:", error);
     const errorMessage =
@@ -165,6 +182,7 @@ export async function updateTransaction(id: string, data: TransactionFormData) {
 
     const updateData = {
       ...validated,
+      category: normalizeCategoryLabel(validated.category),
       updated_at: new Date().toISOString(),
     };
 
@@ -257,10 +275,12 @@ export async function getAnalyticsTransactions(
     if (error) throw error;
     return {
       success: true,
-      data: (data || []) as Pick<
-        Transaction,
-        "type" | "amount" | "category" | "date"
-      >[],
+      data: (
+        (data || []) as Pick<
+          Transaction,
+          "type" | "amount" | "category" | "date"
+        >[]
+      ).map(normalizeTransactionCategory),
     };
   } catch (error) {
     console.error("getAnalyticsTransactions error:", error);

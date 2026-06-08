@@ -2,6 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { supabase } from "@/lib/supabaseClient";
+import { normalizeCategoryLabel } from "@/lib/utils";
 
 type CategorySummaryRow = {
   type: string;
@@ -54,8 +55,8 @@ export async function getCategorySummary(startDate?: string, endDate?: string) {
 
     (data as CategorySummaryRow[] | null)?.forEach((tx) => {
       const rawCategory = typeof tx.category === "string" ? tx.category : "";
-      const trimmedCategory = rawCategory.trim().replace(/\s+/g, " ");
-      const displayCategory = trimmedCategory || "Uncategorized";
+      const displayCategory =
+        normalizeCategoryLabel(rawCategory) || "Uncategorized";
       const key = displayCategory.toLowerCase();
 
       const existing = categoryMap.get(key) || {
@@ -134,6 +135,8 @@ export async function getCategories() {
           (category): category is string =>
             typeof category === "string" && category.length > 0,
         )
+        .map(normalizeCategoryLabel)
+        .filter((category, index, all) => all.indexOf(category) === index)
         .sort(),
     };
   } catch (error) {
