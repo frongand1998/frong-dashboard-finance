@@ -87,6 +87,8 @@ const th: TranslationKeys = {
     noBudgetAlerts: "ยังไม่มีแจ้งเตือนงบประมาณ",
     manageBudgets: "จัดการ",
     overBudget: "เกินงบ",
+    warningLimit: "เตือน",
+    warningLimitHint: "ใกล้ถึงวงเงิน",
     nearLimit: "ใกล้เต็ม",
     nearLimitHint: "ต้องติดตามใกล้ชิด",
     budgetCount: "จำนวนงบ",

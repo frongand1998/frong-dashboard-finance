@@ -23,3 +23,21 @@ export const normalizeCategoryLabel = (value: string) => {
     return `${first.toUpperCase()}${rest.toLowerCase()}`;
   });
 };
+
+export type BudgetAlertLevel = "normal" | "near" | "warning" | "critical";
+
+export const getBudgetAlertLevel = (
+  spent: number,
+  limit: number,
+): BudgetAlertLevel => {
+  if (limit <= 0) {
+    return spent > 0 ? "critical" : "normal";
+  }
+
+  const pct = (spent / limit) * 100;
+
+  if (pct >= 100) return "critical";
+  if (pct >= 90) return "warning";
+  if (pct >= 75) return "near";
+  return "normal";
+};

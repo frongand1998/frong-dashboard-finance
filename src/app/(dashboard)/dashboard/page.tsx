@@ -38,6 +38,7 @@ import { getCategorySummary } from "@/server-actions/categories";
 import { getBudgets } from "@/server-actions/budgets";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useI18n } from "@/contexts/I18nContext";
+import { getBudgetAlertLevel } from "@/lib/utils";
 import type { Transaction, Goal, Budget } from "@/types";
 
 type CategorySummary = {
@@ -165,6 +166,7 @@ export default function DashboardPage() {
         const limit = budget.limit_amount || 0;
         const pct = limit > 0 ? (spent / limit) * 100 : spent > 0 ? 100 : 0;
         const overflow = Math.max(spent - limit, 0);
+        const level = getBudgetAlertLevel(spent, limit);
 
         return {
           ...budget,
@@ -172,23 +174,28 @@ export default function DashboardPage() {
           pct,
           overflow,
           remaining: Math.max(limit - spent, 0),
-          isOver: overflow > 0,
-          isNear: overflow === 0 && pct >= 75,
+          level,
+          isCritical: level === "critical",
+          isWarning: level === "warning",
+          isNear: level === "near",
         };
       })
-      .filter((row) => row.isOver || row.isNear)
+      .filter((row) => row.level !== "normal")
       .sort((a, b) => {
-        if (a.isOver && !b.isOver) return -1;
-        if (!a.isOver && b.isOver) return 1;
+        const order = { critical: 0, warning: 1, near: 2, normal: 3 };
+        if (order[a.level] !== order[b.level]) {
+          return order[a.level] - order[b.level];
+        }
         return b.pct - a.pct;
       });
 
     return {
       rows,
-      overBudgetCount: rows.filter((row) => row.isOver).length,
+      criticalCount: rows.filter((row) => row.level === "critical").length,
+      warningCount: rows.filter((row) => row.level === "warning").length,
       nearLimitCount: rows.filter((row) => row.isNear).length,
       totalOverAmount: rows.reduce(
-        (sum, row) => sum + (row.isOver ? row.overflow : 0),
+        (sum, row) => sum + (row.level === "critical" ? row.overflow : 0),
         0,
       ),
     };
@@ -768,7 +775,7 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <AlertStat
                     label={t.dashboard.overBudget}
-                    value={budgetAlerts.overBudgetCount}
+                    value={budgetAlerts.criticalCount}
                     hint={
                       budgetAlerts.totalOverAmount > 0
                         ? formatCurrency(
@@ -781,16 +788,16 @@ export default function DashboardPage() {
                     icon={<AlertTriangle className="h-4 w-4" />}
                   />
                   <AlertStat
-                    label={t.dashboard.nearLimit}
-                    value={budgetAlerts.nearLimitCount}
-                    hint={t.dashboard.nearLimitHint}
+                    label={t.dashboard.warningLimit}
+                    value={budgetAlerts.warningCount}
+                    hint={t.dashboard.warningLimitHint}
                     tone="warning"
                     icon={<AlertTriangle className="h-4 w-4" />}
                   />
                   <AlertStat
-                    label={t.dashboard.budgetCount}
-                    value={budgets.length}
-                    hint={t.dashboard.currentMonth}
+                    label={t.dashboard.nearLimit}
+                    value={budgetAlerts.nearLimitCount}
+                    hint={t.dashboard.nearLimitHint}
                     tone="success"
                     icon={<CheckCircle2 className="h-4 w-4" />}
                   />
@@ -798,14 +805,20 @@ export default function DashboardPage() {
 
                 <div className="space-y-3">
                   {budgetAlerts.rows.map((row) => {
-                    const isOver = row.isOver;
+                    const isOver = row.level === "critical";
+                    const isWarning = row.level === "warning";
+                    const isNear = row.level === "near";
                     return (
                       <div
                         key={row.id}
                         className={`rounded-xl border p-4 ${
                           isOver
                             ? "border-danger/30 bg-danger/5"
-                            : "border-warning/30 bg-warning/5"
+                            : isWarning
+                              ? "border-warning/30 bg-warning/5"
+                              : isNear
+                                ? "border-accent/30 bg-accent/5"
+                                : "border-border bg-white"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -814,7 +827,9 @@ export default function DashboardPage() {
                               className={`mt-0.5 rounded-full p-1.5 ${
                                 isOver
                                   ? "bg-danger/15 text-danger"
-                                  : "bg-warning/15 text-warning"
+                                  : isWarning
+                                    ? "bg-warning/15 text-warning"
+                                    : "bg-accent/15 text-accent"
                               }`}
                             >
                               <AlertTriangle className="h-3.5 w-3.5" />
@@ -825,11 +840,13 @@ export default function DashboardPage() {
                                   {row.category}
                                 </p>
                                 <span
-                                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${isOver ? "bg-danger text-white" : "bg-warning text-white"}`}
+                                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${isOver ? "bg-danger text-white" : isWarning ? "bg-warning text-white" : "bg-accent text-white"}`}
                                 >
                                   {isOver
                                     ? t.dashboard.overBudget
-                                    : t.dashboard.nearLimit}
+                                    : isWarning
+                                      ? t.dashboard.warningLimit
+                                      : t.dashboard.nearLimit}
                                 </span>
                               </div>
                               <p className="mt-1 text-xs text-muted-foreground">
@@ -843,7 +860,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="text-right shrink-0">
                             <p
-                              className={`text-sm font-bold ${isOver ? "text-danger" : "text-warning"}`}
+                              className={`text-sm font-bold ${isOver ? "text-danger" : isWarning ? "text-warning" : "text-accent"}`}
                             >
                               {Math.min(row.pct, 999).toFixed(0)}%
                             </p>

@@ -6,7 +6,7 @@ import {
   TrendingDown,
   Wallet,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getBudgetAlertLevel } from "@/lib/utils";
 import type { Budget } from "@/types";
 
 interface CategorySpend {
@@ -22,15 +22,17 @@ interface BudgetProgressProps {
   compact?: boolean;
 }
 
-function colorClass(pct: number) {
-  if (pct >= 100) return "bg-danger";
-  if (pct >= 75) return "bg-warning";
+function colorClass(level: ReturnType<typeof getBudgetAlertLevel>) {
+  if (level === "critical") return "bg-danger";
+  if (level === "warning") return "bg-warning";
+  if (level === "near") return "bg-accent";
   return "bg-success";
 }
 
-function textColorClass(pct: number) {
-  if (pct >= 100) return "text-danger";
-  if (pct >= 75) return "text-warning";
+function textColorClass(level: ReturnType<typeof getBudgetAlertLevel>) {
+  if (level === "critical") return "text-danger";
+  if (level === "warning") return "text-warning";
+  if (level === "near") return "text-accent";
   return "text-success";
 }
 
@@ -58,15 +60,22 @@ export function BudgetProgress({
       (c) => c.category.toLowerCase() === b.category.toLowerCase(),
     );
     const spent = spend?.expense ?? 0;
-    const pct = Math.min((spent / b.limit_amount) * 100, 100);
+    const pct =
+      b.limit_amount > 0
+        ? Math.min((spent / b.limit_amount) * 100, 100)
+        : spent > 0
+          ? 100
+          : 0;
     const overflow = spent > b.limit_amount ? spent - b.limit_amount : 0;
-    return { ...b, spent, pct, overflow };
+    const level = getBudgetAlertLevel(spent, b.limit_amount);
+    return { ...b, spent, pct, overflow, level };
   });
 
   // Sort: over-budget first, then by % desc
   rows.sort((a, b) => {
-    if (a.overflow > 0 && b.overflow === 0) return -1;
-    if (a.overflow === 0 && b.overflow > 0) return 1;
+    const order = { critical: 0, warning: 1, near: 2, normal: 3 };
+    if (order[a.level] !== order[b.level])
+      return order[a.level] - order[b.level];
     return b.pct - a.pct;
   });
 
@@ -77,10 +86,12 @@ export function BudgetProgress({
           <div key={r.id}>
             <div className="flex items-center justify-between mb-1 gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
-                {r.overflow > 0 ? (
+                {r.level === "critical" ? (
                   <AlertTriangle className="w-3.5 h-3.5 text-danger shrink-0" />
-                ) : r.pct >= 75 ? (
+                ) : r.level === "warning" ? (
                   <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
+                ) : r.level === "near" ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-accent shrink-0" />
                 ) : (
                   <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
                 )}
@@ -90,7 +101,7 @@ export function BudgetProgress({
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <span
-                  className={`text-xs font-semibold ${textColorClass(r.pct + (r.overflow > 0 ? 100 : 0))}`}
+                  className={`text-xs font-semibold ${textColorClass(r.level)}`}
                 >
                   {formatCurrency(r.spent, currencyCode)}
                 </span>
@@ -101,7 +112,7 @@ export function BudgetProgress({
             </div>
             <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
               <div
-                className={`h-1.5 rounded-full transition-all ${colorClass(r.pct + (r.overflow > 0 ? 100 : 0))}`}
+                className={`h-1.5 rounded-full transition-all ${colorClass(r.level)}`}
                 style={{ width: `${r.pct}%` }}
               />
             </div>
@@ -119,37 +130,45 @@ export function BudgetProgress({
   return (
     <div className="space-y-4">
       {rows.map((r) => {
-        const isOver = r.overflow > 0;
-        const isNear = !isOver && r.pct >= 75;
+        const isCritical = r.level === "critical";
+        const isWarning = r.level === "warning";
+        const isNear = r.level === "near";
         return (
           <div
             key={r.id}
             className={`rounded-xl border p-4 space-y-3 ${
-              isOver
+              isCritical
                 ? "border-danger/30 bg-danger/5"
-                : isNear
+                : isWarning
                   ? "border-warning/30 bg-warning/5"
-                  : "border-border bg-white"
+                  : isNear
+                    ? "border-accent/30 bg-accent/5"
+                    : "border-border bg-white"
             }`}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2">
                 <TrendingDown className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-semibold">{r.category}</span>
-                {isOver && (
+                {isCritical && (
                   <span className="rounded-full bg-danger text-white text-xs px-2 py-0.5 font-medium">
                     Over budget
                   </span>
                 )}
-                {isNear && (
+                {isWarning && (
                   <span className="rounded-full bg-warning text-white text-xs px-2 py-0.5 font-medium">
+                    Warning
+                  </span>
+                )}
+                {isNear && (
+                  <span className="rounded-full bg-accent text-white text-xs px-2 py-0.5 font-medium">
                     Near limit
                   </span>
                 )}
               </div>
               <div className="text-right shrink-0">
                 <p
-                  className={`text-sm font-bold ${isOver ? "text-danger" : isNear ? "text-warning" : "text-foreground"}`}
+                  className={`text-sm font-bold ${isCritical ? "text-danger" : isWarning ? "text-warning" : isNear ? "text-accent" : "text-foreground"}`}
                 >
                   {formatCurrency(r.spent, currencyCode)}
                 </p>
@@ -163,16 +182,22 @@ export function BudgetProgress({
             <div className="space-y-1">
               <div className="w-full h-2.5 rounded-full bg-muted overflow-hidden">
                 <div
-                  className={`h-2.5 rounded-full transition-all ${isOver ? "bg-danger" : isNear ? "bg-warning" : "bg-success"}`}
+                  className={`h-2.5 rounded-full transition-all ${isCritical ? "bg-danger" : isWarning ? "bg-warning" : isNear ? "bg-accent" : "bg-success"}`}
                   style={{ width: `${r.pct}%` }}
                 />
               </div>
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{r.pct.toFixed(0)}% used</span>
-                {isOver ? (
+                {isCritical ? (
                   <span className="text-danger font-medium">
                     Over by {formatCurrency(r.overflow, currencyCode)}
                   </span>
+                ) : isWarning ? (
+                  <span className="text-warning font-medium">
+                    Getting close to limit
+                  </span>
+                ) : isNear ? (
+                  <span className="text-accent font-medium">Near limit</span>
                 ) : (
                   <span>
                     {formatCurrency(r.limit_amount - r.spent, currencyCode)}{" "}

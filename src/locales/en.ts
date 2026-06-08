@@ -85,6 +85,8 @@ const en = {
     noBudgetAlerts: "No budget alerts right now.",
     manageBudgets: "Manage",
     overBudget: "Over budget",
+    warningLimit: "Warning",
+    warningLimitHint: "Approaching the limit",
     nearLimit: "Near limit",
     nearLimitHint: "Watching closely",
     budgetCount: "Budgets",
